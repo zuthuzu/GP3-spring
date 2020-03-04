@@ -6,9 +6,9 @@
     <link rel="stylesheet" href="webtest.css">
 </head>
 <body>
-    <h1>Welcome to the Web Test</h1>
+    <h1 th:text="#{index.welcome}">Language-nonspecific welcome</h1>
     <div>
-        Please, try to enjoy this index page.
+        <span th:text="#{index.preamble}" th:remove="tag">Language-nonspecific intro</span>
     </div>
 
     <form action="#" th:action="@{/selected}" th:object="${language}" method="post">
