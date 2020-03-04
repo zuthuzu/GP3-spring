@@ -46,15 +46,8 @@ public enum SupportedLanguages {
 		return determineLocale(getDefault());
 	}
 
-	@SuppressWarnings("DuplicateBranchesInSwitch")
 	public static Locale determineLocale(SupportedLanguages lang) {
-		switch (lang) {
-			case ENGLISH:
-				return new Locale("en", "US");
-			case RUSSIAN:
-				return new Locale("ru", "RU");
-			default:
-				return new Locale("en", "US");
-		}
+		return new Locale(lang.getCode());
 	}
+
 }

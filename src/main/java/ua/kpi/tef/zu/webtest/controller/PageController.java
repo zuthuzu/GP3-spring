@@ -1,6 +1,7 @@
 package ua.kpi.tef.zu.webtest.controller;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,17 +21,19 @@ import java.util.Locale;
 @Controller
 public class PageController implements WebMvcConfigurer {
 
+	private LanguageDTO languageSwitcher = new LanguageDTO();
+
 	@Bean
 	public LocaleResolver localeResolver(){
 		SessionLocaleResolver localeResolver = new SessionLocaleResolver();
 		localeResolver.setDefaultLocale(Locale.ENGLISH);
-		return  localeResolver;
+		return localeResolver;
 	}
 
 	@Bean
 	public LocaleChangeInterceptor localeChangeInterceptor() {
 		LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
-		localeChangeInterceptor.setParamName("l"); //token that is expected after ? for locale choice
+		localeChangeInterceptor.setParamName("l"); //token that is expected after /? in url for locale choice
 		return localeChangeInterceptor;
 	}
 
@@ -41,14 +44,20 @@ public class PageController implements WebMvcConfigurer {
 
 	@RequestMapping("/")
 	public String mainPage(Model model){
-		model.addAttribute("language", new LanguageDTO());
+		//our web page can be reloaded via JS without form submitting data into languageSwitcher
+		//and locale might change in the meantime. gotta keep it actual for internal purposes
+		languageSwitcher.setChoice(LocaleContextHolder.getLocale().toString());
+
+		model.addAttribute("language", languageSwitcher);
 		model.addAttribute("supported", SupportedLanguages.values());
 		return "index.html";
 	}
 
 	@PostMapping ("/lobby")
-	public String processLanguageSelection(@ModelAttribute LanguageDTO language){
-		System.out.println(language.getChoice());
+	public String lobbyPage(@ModelAttribute LanguageDTO language, Model model){
+		System.out.println("Obtained locale code from the front end: " + language.getChoice());
+
+		model.addAttribute("language", languageSwitcher);
 		return "lobby.html";
 	}
 }

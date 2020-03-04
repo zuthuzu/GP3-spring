@@ -25,7 +25,7 @@
         <form name="language_selection" action="#" th:action="@{/lobby}" th:object="${language}" method="post">
             <div th:each="current : ${supported}">
                 <label>
-                    <input type="radio" th:field="*{choice}" th:value="${current.code}" onclick="handleClick(this);">
+                    <input type="radio" onclick="handleClick(this);" th:field="*{choice}" th:value="${current.code}">
                     <span th:text="${current.name}" th:remove="tag">placeholder title</span>
                 </label>
                 <br />

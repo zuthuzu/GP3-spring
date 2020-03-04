@@ -8,13 +8,31 @@ import java.util.Locale;
  */
 public class LanguageDTO {
 	private String choice;
+	private String name;
 
 	public void setChoice(String language) {
 		this.choice = language;
+		this.name = findNameByCode(language);
 	}
 
 	public String getChoice() {
 		return choice;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public String findNameByCode(String code) {
+		String codeLC = code.toLowerCase();
+
+		for (SupportedLanguages lang: SupportedLanguages.values()) {
+			if (lang.getCode().equals(codeLC)) {
+				return lang.getName();
+			}
+		}
+
+		return "";
 	}
 
 	public String[] getSupportedCodes() {
@@ -24,5 +42,4 @@ public class LanguageDTO {
 	public Locale getLocale() {
 		return SupportedLanguages.determineLocale(choice);
 	}
-
 }
