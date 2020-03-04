@@ -1,0 +1,26 @@
+<!DOCTYPE HTML>
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Web Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="webtest.css">
+</head>
+<body>
+    <h1>Welcome to the Web Test</h1>
+    <div>
+        Please, try to enjoy this index page.
+    </div>
+
+    <form action="#" th:action="@{/selected}" th:object="${language}" method="post">
+        <div th:each="current : ${supported}">
+            <label>
+                <input type="radio" th:field="*{choice}" th:value="${current.code}">
+                <span th:text="${current.name}" th:remove="tag">placeholder title</span>
+            </label>
+        </div>
+        <div>
+            <input type="submit">
+        </div>
+    </form>
+</body>
+</html>
