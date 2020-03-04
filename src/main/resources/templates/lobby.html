@@ -1,14 +1,16 @@
 <!DOCTYPE HTML>
-<html>
+<html xmlns:th="https://www.thymeleaf.org">
 <head>
     <title>Web Test</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="webtest.css">
 </head>
 <body>
-    <h1>Language selection results</h1>
+<div class="column">
+    <h1 th:text="#{lobby.welcome}">Header</h1>
     <div>
-        Under construction.
+        <span th:text="#{general.placeholder}" th:remove="tag">{Under construction}</span>
     </div>
+</div>
 </body>
 </html>

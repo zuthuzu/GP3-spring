@@ -5,22 +5,37 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" href="webtest.css">
 </head>
-<body>
-    <h1 th:text="#{index.welcome}">Language-nonspecific welcome</h1>
-    <div>
-        <span th:text="#{index.preamble}" th:remove="tag">Language-nonspecific intro</span>
-    </div>
 
-    <form action="#" th:action="@{/selected}" th:object="${language}" method="post">
-        <div th:each="current : ${supported}">
-            <label>
-                <input type="radio" th:field="*{choice}" th:value="${current.code}">
-                <span th:text="${current.name}" th:remove="tag">placeholder title</span>
-            </label>
-        </div>
-        <div>
-            <input type="submit">
-        </div>
-    </form>
+<script type="text/javascript">
+    function handleClick(lang_radio) {
+        if (lang_radio.value != '') {
+            window.location.replace('?l=' + lang_radio.value);
+        }
+    }
+</script>
+
+<body>
+<div class="column">
+    <h1 th:text="#{index.welcome}">{Welcome header}</h1>
+    <div>
+        <span th:text="#{index.preamble}" th:remove="tag">{Some intro}</span>
+    </div>
+    <br />
+    <div>
+        <form name="language_selection" action="#" th:action="@{/lobby}" th:object="${language}" method="post">
+            <div th:each="current : ${supported}">
+                <label>
+                    <input type="radio" th:field="*{choice}" th:value="${current.code}" onclick="handleClick(this);">
+                    <span th:text="${current.name}" th:remove="tag">placeholder title</span>
+                </label>
+                <br />
+            </div>
+            <br />
+            <div>
+                <input class="button" type="submit" th:value="#{index.proceed}">
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>

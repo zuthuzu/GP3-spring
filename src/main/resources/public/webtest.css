@@ -1,7 +1,28 @@
 body {
-  background-color: Linen;
-  font-family: Verdana
+  background-color: Tan ;
+  font-family: Verdana ;
 }
+
 h1 {
-  color: IndianRed;
+  color: IndianRed ;
+}
+
+.column {
+width: 50% ;
+height: 100% ;
+margin-left: auto ;
+margin-right: auto ;
+padding: 10px ;
+background-color: Linen ;
+}
+
+.button {
+  background-color: IndianRed ;
+  border: none ;
+  color: white ;
+  padding: 15px 32px ;
+  text-align: center ;
+  text-decoration: none ;
+  display: inline-block ;
+  font-size: 16px ;
 }

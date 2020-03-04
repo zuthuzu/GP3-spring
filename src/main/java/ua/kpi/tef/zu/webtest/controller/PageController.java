@@ -6,23 +6,19 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.ui.Model;
-import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 
 import java.util.Locale;
 
-
 /**
  * Created by Anton Domin on 2020-03-04
  */
 @Controller
-public class PageController {
-	/*public PageController() {
-		messageSource.setBasename("messages");
-		messageSource.setDefaultLocale(SupportedLanguages.getDefaultLocale());
-	}*/
+public class PageController implements WebMvcConfigurer {
 
 	@Bean
 	public LocaleResolver localeResolver(){
@@ -34,8 +30,13 @@ public class PageController {
 	@Bean
 	public LocaleChangeInterceptor localeChangeInterceptor() {
 		LocaleChangeInterceptor localeChangeInterceptor = new LocaleChangeInterceptor();
-		localeChangeInterceptor.setParamName("lang");
+		localeChangeInterceptor.setParamName("l"); //token that is expected after ? for locale choice
 		return localeChangeInterceptor;
+	}
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry){
+		registry.addInterceptor(localeChangeInterceptor());
 	}
 
 	@RequestMapping("/")
@@ -45,10 +46,10 @@ public class PageController {
 		return "index.html";
 	}
 
-	@PostMapping ("/selected")
+	@PostMapping ("/lobby")
 	public String processLanguageSelection(@ModelAttribute LanguageDTO language){
 		System.out.println(language.getChoice());
-		return "selected.html";
+		return "lobby.html";
 	}
 }
 
