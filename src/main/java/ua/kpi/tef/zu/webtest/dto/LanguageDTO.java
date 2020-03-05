@@ -1,4 +1,6 @@
-package ua.kpi.tef.zu.webtest.controller;
+package ua.kpi.tef.zu.webtest.dto;
+
+import ua.kpi.tef.zu.webtest.controller.SupportedLanguages;
 
 import java.util.Arrays;
 import java.util.Locale;
@@ -35,11 +37,19 @@ public class LanguageDTO {
 		return "";
 	}
 
+	public SupportedLanguages[] getSupportedLanguages() {
+		return SupportedLanguages.values();
+	}
+
 	public String[] getSupportedCodes() {
 		return Arrays.stream(SupportedLanguages.values()).map(SupportedLanguages::getCode).toArray(String[]::new);
 	}
 
 	public Locale getLocale() {
 		return SupportedLanguages.determineLocale(choice);
+	}
+
+	public boolean isLocaleCyrillic() {
+		return SupportedLanguages.CYRILLICS.contains(choice);
 	}
 }

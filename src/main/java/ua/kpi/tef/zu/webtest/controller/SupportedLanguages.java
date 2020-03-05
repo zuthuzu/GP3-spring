@@ -1,6 +1,9 @@
 package ua.kpi.tef.zu.webtest.controller;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 
 /**
  * Created by Anton Domin on 2020-02-11
@@ -9,6 +12,9 @@ import java.util.Locale;
 public enum SupportedLanguages {
 	ENGLISH ("en", "English"),
 	RUSSIAN ("ru", "Русский");
+
+	@SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
+	public static final Set<String> CYRILLICS = new HashSet<>(Arrays.asList(RUSSIAN.getCode()));
 
 	private String code;
 	private String name;

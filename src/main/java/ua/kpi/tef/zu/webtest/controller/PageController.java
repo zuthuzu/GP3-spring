@@ -1,5 +1,6 @@
 package ua.kpi.tef.zu.webtest.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
@@ -12,7 +13,11 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import ua.kpi.tef.zu.webtest.dto.LanguageDTO;
+import ua.kpi.tef.zu.webtest.entity.User;
+import ua.kpi.tef.zu.webtest.service.UserService;
 
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -22,6 +27,12 @@ import java.util.Locale;
 public class PageController implements WebMvcConfigurer {
 
 	private LanguageDTO languageSwitcher = new LanguageDTO();
+	private final UserService userService;
+
+	@Autowired
+	public PageController(UserService userService) {
+		this.userService = userService;
+	}
 
 	@Bean
 	public LocaleResolver localeResolver(){
@@ -49,7 +60,7 @@ public class PageController implements WebMvcConfigurer {
 		languageSwitcher.setChoice(LocaleContextHolder.getLocale().toString());
 
 		model.addAttribute("language", languageSwitcher);
-		model.addAttribute("supported", SupportedLanguages.values());
+		model.addAttribute("supported", languageSwitcher.getSupportedLanguages());
 		return "index.html";
 	}
 
@@ -57,7 +68,16 @@ public class PageController implements WebMvcConfigurer {
 	public String lobbyPage(@ModelAttribute LanguageDTO language, Model model){
 		System.out.println("Obtained locale code from the front end: " + language.getChoice());
 
-		model.addAttribute("language", languageSwitcher);
+		List<User> allUsers = userService.getAllUsers().getUsers();
+		if (language.isLocaleCyrillic()){
+			for (User user : allUsers) {
+				user.setFirstName(user.getFirstNameCyr());
+				user.setLastName(user.getLastNameCyr());
+			}
+		}
+
+		model.addAttribute("language", language);
+		model.addAttribute("users", allUsers);
 		return "lobby.html";
 	}
 }

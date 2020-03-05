@@ -9,8 +9,20 @@
 <div class="column">
     <h1 th:text="#{lobby.welcome}">Header</h1>
     <div>
-        <span th:text="#{lobby.language}" th:remove="tag">{Under construction}</span>:
-        <span th:text="${language.name}" th:remove="tag">{Under construction}</span>
+        <span th:text="#{lobby.language}" th:remove="tag">{Your language}</span>:
+        <span th:text="${language.name}" th:remove="tag">{whatever locale is selected}</span>
+    </div>
+    <br />
+    <div>
+        <h3 th:text="#{users.header} + ':'">{Here goes user table}</h3>
+        <table>
+            <tr th:each="user : ${users}">
+                <td>
+                    👉 <span th:text="${user.firstName} + ' ' + ${user.lastName}" th:remove="tag">{Full user name}</span>
+                    <br /><br />
+                </td>
+            </tr>
+        </table>
     </div>
     <br />
     <div>
