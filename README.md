@@ -1,2 +1,2 @@
 # Web Test Application
-Placeholder for a springboot-based project.
+Springboot-based test project with some security implementation
