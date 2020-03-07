@@ -1,7 +1,6 @@
 package ua.kpi.tef.zu.webtest.entity;
 
 import lombok.*;
-
 import javax.persistence.*;
 
 /**
@@ -38,5 +37,15 @@ public class User {
 	@Column(name = "role")
 	@Enumerated(EnumType.STRING)
 	private RoleType role;
+
+	private String password;
+
+	private boolean accountNonExpired;
+
+	private boolean accountNonLocked;
+
+	private boolean credentialsNonExpired;
+
+	private boolean enabled;
 }
 
