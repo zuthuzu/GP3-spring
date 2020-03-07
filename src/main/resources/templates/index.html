@@ -1,4 +1,5 @@
 <!DOCTYPE HTML>
+<!--suppress HtmlUnknownAttribute -->
 <html xmlns:th="https://www.thymeleaf.org">
 <head>
     <title>Web Test</title>
@@ -17,25 +18,54 @@
 <body>
 <div class="column">
     <h1 th:text="#{index.welcome}">{Welcome header}</h1>
-    <div>
+
+    <div class="alert" th:if="${error}">
+        <h3 class="black" th:text="#{login.error}">{Login error}</h3>
+    </div>
+
+    <div class="info" th:if="${logout}">
+        <h3 class="black" th:text="#{login.logout}">{Logout ok}</h3>
+    </div>
+
+    <div th:unless="${error or logout}">
         <span th:text="#{index.preamble}" th:remove="tag">{Some intro}</span>
     </div>
     <br />
+
+    <h3 th:text="#{index.language}">{Choose language}</h3>
     <div>
-        <form name="language_selection" action="#" th:action="@{/lobby}" th:object="${language}" method="post">
+        <form name="language_selection" method="post" th:object="${language}" action="#" th:action="@{/lobby}">
             <div th:each="current : ${supported}">
                 <label>
                     <input type="radio" onclick="handleClick(this);" th:field="*{choice}" th:value="${current.code}">
                     <span th:text="${current.name}" th:remove="tag">placeholder title</span>
                 </label>
-                <br />
-            </div>
-            <br />
-            <div>
-                <input class="button" type="submit" th:value="#{index.proceed}">
             </div>
         </form>
     </div>
+    <br />
+
+    <h3 th:text="#{login.welcome}">{Login header}</h3>
+    <form method="post">
+        <div>
+            <label for="username" th:text="#{login.username}">{Username}</label>
+            <br />
+            <input type="text" id="username" th:placeholder="#{login.username}" name="username">
+            <br />
+        </div>
+        <br />
+        <div>
+            <label for="password" th:text="#{login.password}">{Password}</label>
+            <br />
+            <input type="password" id="password" th:placeholder="#{login.password}" name="password">
+            <br />
+        </div>
+        <br />
+        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
+        <div>
+            <input class="button" type="submit" th:value="#{login.proceed}">
+        </div>
+    </form>
 </div>
 </body>
 </html>

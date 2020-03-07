@@ -24,8 +24,6 @@ public class UserService implements UserDetailsService {
 		this.userRepo = userRepository;
 	}
 
-
-
 	public UserListDTO getAllUsers() {
 		//TODO checking for an empty user list
 		return new UserListDTO(userRepo.findAll());

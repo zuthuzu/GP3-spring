@@ -1,6 +1,7 @@
 package ua.kpi.tef.zu.webtest.entity;
 
 import lombok.*;
+
 import javax.persistence.*;
 
 /**
@@ -15,8 +16,8 @@ import javax.persistence.*;
 @ToString
 
 @Entity
-@Table( name="user",
-		uniqueConstraints={@UniqueConstraint(columnNames={"login", "email"})})
+@Table(name = "user",
+		uniqueConstraints = {@UniqueConstraint(columnNames = {"login", "email"})})
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)

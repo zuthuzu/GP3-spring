@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -35,7 +36,7 @@ public class PageController implements WebMvcConfigurer {
 	}
 
 	@Bean
-	public LocaleResolver localeResolver(){
+	public LocaleResolver localeResolver() {
 		SessionLocaleResolver localeResolver = new SessionLocaleResolver();
 		localeResolver.setDefaultLocale(Locale.ENGLISH);
 		return localeResolver;
@@ -49,27 +50,33 @@ public class PageController implements WebMvcConfigurer {
 	}
 
 	@Override
-	public void addInterceptors(InterceptorRegistry registry){
+	public void addInterceptors(InterceptorRegistry registry) {
 		registry.addInterceptor(localeChangeInterceptor());
 	}
 
 	@RequestMapping("/")
-	public String mainPage(Model model){
+	public String mainPage(@RequestParam(value = "error", required = false) String error,
+						   @RequestParam(value = "logout", required = false) String logout,
+						   Model model) {
 		//our web page can be reloaded via JS without form submitting data into languageSwitcher
 		//and locale might change in the meantime. gotta keep it actual for internal purposes
 		languageSwitcher.setChoice(LocaleContextHolder.getLocale().toString());
 
 		model.addAttribute("language", languageSwitcher);
 		model.addAttribute("supported", languageSwitcher.getSupportedLanguages());
+
+		model.addAttribute("error", error != null);
+		model.addAttribute("logout", logout != null);
+
 		return "index.html";
 	}
 
-	@PostMapping ("/lobby")
-	public String lobbyPage(@ModelAttribute LanguageDTO language, Model model){
+	@RequestMapping("/lobby")
+	public String lobbyPage(@ModelAttribute LanguageDTO language, Model model) {
 		System.out.println("Obtained locale code from the front end: " + language.getChoice());
 
 		List<User> allUsers = userService.getAllUsers().getUsers();
-		if (language.isLocaleCyrillic()){
+		if (language.isLocaleCyrillic()) {
 			for (User user : allUsers) {
 				user.setFirstName(user.getFirstNameCyr());
 				user.setLastName(user.getLastNameCyr());

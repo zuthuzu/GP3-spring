@@ -1,37 +1,68 @@
 body {
-  background-color: Tan ;
-  font-family: Verdana ;
+    background-color: Tan ;
+    font-family: Verdana ;
 }
 
 h1 {
-  color: IndianRed ;
+    color: IndianRed ;
 }
 
 h2 {
-  color: IndianRed ;
+    color: IndianRed ;
 }
 
 h3 {
-  color: IndianRed ;
+    color: IndianRed ;
+}
+
+.black {
+    color: Black ;
 }
 
 
 .column {
-width: 50% ;
-height: 100% ;
-margin-left: auto ;
-margin-right: auto ;
-padding: 10px ;
-background-color: Linen ;
+    width: 50% ;
+    height: 100% ;
+    margin-left: auto ;
+    margin-right: auto ;
+    padding: 10px ;
+    background-color: Linen ;
+}
+
+.alert {
+    width: 50% ;
+    padding: 10px ;
+    text-align: center ;
+    background-color: IndianRed ;
+}
+
+.info {
+    width: 50% ;
+    padding: 10px ;
+    text-align: center ;
+    background-color: LightSalmon ;
 }
 
 .button {
-  background-color: IndianRed ;
-  border: none ;
-  color: white ;
-  padding: 15px 32px ;
-  text-align: center ;
-  text-decoration: none ;
-  display: inline-block ;
-  font-size: 16px ;
+    background-color: IndianRed ;
+    border: none ;
+    color: white ;
+    padding: 15px 32px ;
+    text-align: center ;
+    text-decoration: none ;
+    display: inline-block ;
+    font-size: 16px ;
+}
+
+input[type="text"], input[type="password"] {
+    width: 50% ;
+    padding: 12px 20px ;
+    margin: 8px 0 ;
+    box-sizing: border-box ;
+    border: 2px solid IndianRed ;
+    border-radius: 4px;
+}
+
+input[type="text"]:focus, input[type="password"]:focus {
+    border: 2px solid Tomato ;
 }

@@ -2,7 +2,6 @@ package ua.kpi.tef.zu.webtest.dto;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ua.kpi.tef.zu.webtest.entity.RoleType;
 import ua.kpi.tef.zu.webtest.entity.User;
 
 import java.util.Collection;
