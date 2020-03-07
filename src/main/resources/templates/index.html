@@ -34,7 +34,7 @@
 
     <h3 th:text="#{index.language}">{Choose language}</h3>
     <div>
-        <form name="language_selection" method="post" th:object="${language}" action="#" th:action="@{/lobby}">
+        <form name="language_selection" th:object="${language}">
             <div th:each="current : ${supported}">
                 <label>
                     <input type="radio" onclick="handleClick(this);" th:field="*{choice}" th:value="${current.code}">

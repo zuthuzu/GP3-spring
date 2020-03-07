@@ -3,9 +3,10 @@ package ua.kpi.tef.zu.webtest.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -14,7 +15,10 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.web.servlet.view.RedirectView;
 import ua.kpi.tef.zu.webtest.dto.LanguageDTO;
+import ua.kpi.tef.zu.webtest.dto.UserDTO;
+import ua.kpi.tef.zu.webtest.entity.RoleType;
 import ua.kpi.tef.zu.webtest.entity.User;
 import ua.kpi.tef.zu.webtest.service.UserService;
 
@@ -58,6 +62,12 @@ public class PageController implements WebMvcConfigurer {
 	public String mainPage(@RequestParam(value = "error", required = false) String error,
 						   @RequestParam(value = "logout", required = false) String logout,
 						   Model model) {
+
+		//if we can get user auth from SecurityContextHolder, then he's already logged in, and doesn't need to be here
+		if (!SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser")) {
+			return lobbyPage(model);
+		}
+
 		//our web page can be reloaded via JS without form submitting data into languageSwitcher
 		//and locale might change in the meantime. gotta keep it actual for internal purposes
 		languageSwitcher.setChoice(LocaleContextHolder.getLocale().toString());
@@ -71,21 +81,71 @@ public class PageController implements WebMvcConfigurer {
 		return "index.html";
 	}
 
-	@RequestMapping("/lobby")
-	public String lobbyPage(@ModelAttribute LanguageDTO language, Model model) {
-		System.out.println("Obtained locale code from the front end: " + language.getChoice());
+	@RequestMapping("/success")
+	public RedirectView localRedirect() {
+		RedirectView redirectView = new RedirectView();
 
-		List<User> allUsers = userService.getAllUsers().getUsers();
-		if (language.isLocaleCyrillic()) {
-			for (User user : allUsers) {
-				user.setFirstName(user.getFirstNameCyr());
-				user.setLastName(user.getLastNameCyr());
-			}
+		if (currentUserIsAdmin()) {
+			redirectView.setUrl("/users");
+		} else {
+			redirectView.setUrl("/lobby");
 		}
 
-		model.addAttribute("language", language);
-		model.addAttribute("users", allUsers);
+		return redirectView;
+	}
+
+	@RequestMapping("/lobby")
+	public String lobbyPage(Model model) {
+		model.addAttribute("language", languageSwitcher);
+		model.addAttribute("user", getCurrentUser());
+		model.addAttribute("error", false);
 		return "lobby.html";
+	}
+
+	@RequestMapping("/users")
+	public String usersPage(Model model) {
+		model.addAttribute("language", languageSwitcher);
+		model.addAttribute("user", getCurrentUser());
+		if (currentUserIsAdmin()) {
+			model.addAttribute("users", getAllUsers());
+			return "users.html";
+		} else {
+			model.addAttribute("error", true);
+			return "lobby.html";
+		}
+
+	}
+
+	private boolean currentUserIsAdmin() {
+		User currentUser = getCurrentUser();
+		return currentUser.getRole() == RoleType.ROLE_ADMIN || currentUser.getRole() == RoleType.ROLE_ROOT;
+	}
+
+	private User getCurrentUser() {
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		UserDTO currentUser;
+
+		try {
+			currentUser = (UserDTO) auth.getPrincipal();
+		} catch (ClassCastException e) {
+			return new User(); //this is likely wrong, there should be a good way to build dummy objects in Spring
+		}
+
+		substituteWithCyrillic(currentUser.getUser());
+		return currentUser.getUser();
+	}
+
+	private List<User> getAllUsers() {
+		List<User> users = userService.getAllUsers().getUsers();
+		users.forEach(this::substituteWithCyrillic);
+		return users;
+	}
+
+	private void substituteWithCyrillic (User user) {
+		if (languageSwitcher.isLocaleCyrillic()) {
+			user.setFirstName(user.getFirstNameCyr());
+			user.setLastName(user.getLastNameCyr());
+		}
 	}
 }
 

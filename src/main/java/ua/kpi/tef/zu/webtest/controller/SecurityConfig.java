@@ -29,7 +29,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.formLogin()
 					.loginPage("/")
 					.permitAll()
-					.successForwardUrl("/lobby")
+					.successForwardUrl("/success")
 					.and()
 				.logout()
 					.logoutRequestMatcher(new AntPathRequestMatcher("/logout")).permitAll();

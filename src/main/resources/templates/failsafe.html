@@ -1,0 +1,17 @@
+<!DOCTYPE HTML>
+<!--suppress HtmlUnknownAttribute -->
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Web Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="webtest.css">
+</head>
+<body>
+<div class="column">
+    <h1 th:text="#{error.welcome}">{Header}</h1>
+    <div>
+        <span th:text="#{error.general}" th:remove="tag">{Something went wrong}</span>
+    </div>
+</div>
+</body>
+</html>
