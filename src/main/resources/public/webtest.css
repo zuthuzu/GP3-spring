@@ -54,7 +54,12 @@ h3 {
     font-size: 16px ;
 }
 
-input[type="text"], input[type="password"] {
+.validation {
+    display: none ;
+    white-space: nowrap ;
+}
+
+input[type="text"], input[type="email"], input[type="password"] {
     width: 50% ;
     padding: 12px 20px ;
     margin: 8px 0 ;
@@ -63,10 +68,9 @@ input[type="text"], input[type="password"] {
     border-radius: 4px;
 }
 
-input[type="text"]:focus, input[type="password"]:focus {
+input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
     border: 2px solid Tomato ;
 }
-
 
 a:link {
     color: IndianRed;

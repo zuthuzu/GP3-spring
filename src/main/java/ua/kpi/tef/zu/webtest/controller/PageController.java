@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,9 @@ public class PageController implements WebMvcConfigurer {
 
 	private LanguageDTO languageSwitcher = new LanguageDTO();
 	private final UserService userService;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 	@Autowired
 	public PageController(UserService userService) {
@@ -113,7 +117,45 @@ public class PageController implements WebMvcConfigurer {
 			model.addAttribute("error", true);
 			return "lobby.html";
 		}
+	}
 
+	@RequestMapping("/reg")
+	public String registerUser(Model model) {
+		model.addAttribute("firstNameRegex", "^" + RegistrationValidation.FIRST_NAME_REGEX + "$");
+		model.addAttribute("firstNameCyrRegex", "^" + RegistrationValidation.FIRST_NAME_CYR_REGEX + "$");
+		model.addAttribute("lastNameRegex", "^" + RegistrationValidation.LAST_NAME_REGEX + "$");
+		model.addAttribute("lastNameCyrRegex", "^" + RegistrationValidation.LAST_NAME_CYR_REGEX + "$");
+		model.addAttribute("loginRegex", "^" + RegistrationValidation.LOGIN_REGEX + "$");
+
+		model.addAttribute("newUser", new User());
+
+		return "reg.html";
+	}
+
+	@RequestMapping("/newuser")
+	public RedirectView newUser(@ModelAttribute User user) {
+		System.out.println(user);
+
+		User newUser = User.builder()
+				.firstName(user.getFirstName())
+				.firstNameCyr(user.getFirstNameCyr())
+				.lastName(user.getLastName())
+				.lastNameCyr(user.getLastNameCyr())
+				.login(user.getLogin())
+				.email(user.getEmail())
+				.password(passwordEncoder.encode(user.getPassword()))
+				.role(RoleType.ROLE_USER)
+				.accountNonExpired(true)
+				.accountNonLocked(true)
+				.credentialsNonExpired(true)
+				.enabled(true)
+				.build();
+
+
+
+		RedirectView redirectView = new RedirectView();
+		redirectView.setUrl("/");
+		return redirectView;
 	}
 
 	private boolean currentUserIsAdmin() {
@@ -128,7 +170,7 @@ public class PageController implements WebMvcConfigurer {
 		try {
 			currentUser = (UserDTO) auth.getPrincipal();
 		} catch (ClassCastException e) {
-			return new User(); //this is likely wrong, there should be a good way to build dummy objects in Spring
+			return new User(); //this is likely wrong, there should be a better way to build dummy objects in Spring
 		}
 
 		substituteWithCyrillic(currentUser.getUser());

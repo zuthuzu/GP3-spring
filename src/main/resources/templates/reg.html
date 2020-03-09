@@ -1,0 +1,158 @@
+<!DOCTYPE HTML>
+<!--suppress HtmlUnknownAttribute -->
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title>Web Test</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="webtest.css">
+</head>
+
+<body>
+<div class="column">
+    <h1 th:text="#{reg.welcome}">{Welcome header}</h1>
+
+    <div class="alert" th:if="${error}">
+        <h3 class="black" th:text="#{reg.error}">{Reg error}</h3>
+    </div>
+
+    <h3 th:text="#{reg.header}">{Fill in those fields}</h3>
+    <div>
+        <form id="newUser" name="newUser" action="#" th:action="@{/newuser}" th:object="${newUser}" method="post">
+            <div>
+                <label for="firstName">
+                    <span th:text="#{reg.firstname.lat}" th:remove="tag">{First name}</span>󠀠
+                    <span id="firstNameYet">🗅</span>
+                    <span id="firstNameCheck" class="validation">✅</span>
+                    <span id="firstNameFail" class="validation">❌</span>
+                </label>
+                <br />
+                <input type="text" id="firstName" name="firstName" th:field="*{firstName}" th:placeholder="#{reg.firstname.lat}" required>
+                <br />
+            </div>
+            <div>
+                <label for="firstNameCyr" th:text="#{reg.firstname.cyr}">{First name cyrillic}</label>
+                <span id="firstNameCyrYet">🗅</span>
+                <span id="firstNameCyrCheck" class="validation">✅</span>
+                <span id="firstNameCyrFail" class="validation">❌</span>
+                <br />
+                <input type="text" id="firstNameCyr" name="firstNameCyr" th:field="*{firstNameCyr}" th:placeholder="#{reg.firstname.cyr}" required>
+                <br />
+            </div>
+            <div>
+                <label for="lastName" th:text="#{reg.lastname.lat}">{Last name}</label>
+                <span id="lastNameYet">🗅</span>
+                <span id="lastNameCheck" class="validation">✅</span>
+                <span id="lastNameFail" class="validation">❌</span>
+                <br />
+                <input type="text" id="lastName" name="lastName" th:field="*{lastName}" th:placeholder="#{reg.lastname.lat}" required>
+                <br />
+            </div>
+            <div>
+                <label for="lastNameCyr" th:text="#{reg.lastname.cyr}">{Last name cyrillic}</label>
+                <span id="lastNameCyrYet">🗅</span>
+                <span id="lastNameCyrCheck" class="validation">✅</span>
+                <span id="lastNameCyrFail" class="validation">❌</span>
+                <br />
+                <input type="text" id="lastNameCyr" name="lastNameCyr" th:field="*{lastNameCyr}" th:placeholder="#{reg.lastname.cyr}" required>
+                <br />
+            </div>
+            <div>
+                <label for="login" th:text="#{login.username}">{User name}</label>
+                <span id="loginYet">🗅</span>
+                <span id="loginCheck" class="validation">✅</span>
+                <span id="loginFail" class="validation">❌</span>
+                <br />
+                <input type="text" id="login" name="login" th:field="*{login}" th:placeholder="#{login.username}" required>
+                <br />
+            </div>
+            <div>
+                <label for="email" th:text="#{reg.email}">{Email}</label>
+                <span id="emailYet">🗅</span>
+                <span id="emailCheck" class="validation">✅</span>
+                <span id="emailFail" class="validation">❌</span>
+                <br />
+                <input type="email" id="email" name="email" th:field="*{email}" th:placeholder="#{reg.email}" required>
+                <br />
+            </div>
+            <div>
+                <label for="password" th:text="#{login.password}">{Password}</label>
+                <br />
+                <input type="password" id="password" name="password" th:placeholder="#{login.password}" required>
+                <br />
+            </div>
+            <br />
+            <div>
+                <input class="button" type="submit" th:value="#{reg.submit}">
+            </div>
+        </form>
+    </div>
+    <br />
+</div>
+<script type="text/javascript" th:inline="javascript">
+    var firstName = document.forms["newUser"]["firstName"];
+    var firstNameCyr = document.forms["newUser"]["firstNameCyr"];
+    var lastName = document.forms["newUser"]["lastName"];
+    var lastNameCyr = document.forms["newUser"]["lastNameCyr"];
+    var login = document.forms["newUser"]["login"];
+    var email = document.forms["newUser"]["email"];
+    var password = document.forms["newUser"]["password"];
+
+    var firstNameRegex = [[${firstNameRegex}]];
+    var firstNameCyrRegex = [[${firstNameCyrRegex}]];
+    var lastNameRegex = [[${lastNameRegex}]];
+    var lastNameCyrRegex = [[${lastNameCyrRegex}]];
+    var loginRegex = [[${loginRegex}]];
+
+    firstName.addEventListener("blur", function () {
+        checkField(firstName, firstNameRegex)
+    }, false)
+
+    firstNameCyr.addEventListener("blur", function () {
+        checkField(firstNameCyr, firstNameCyrRegex)
+    }, false)
+
+    lastName.addEventListener("blur", function () {
+        checkField(lastName, lastNameRegex)
+    }, false)
+
+    lastNameCyr.addEventListener("blur", function () {
+        checkField(lastNameCyr, lastNameCyrRegex)
+    }, false)
+
+    login.addEventListener("blur", function () {
+        checkField(login, loginRegex)
+    }, false)
+
+    email.addEventListener("blur", function () {
+        checkEmail(email)
+    }, false)
+
+    function checkField(field, constraint) {
+        regex = new RegExp(constraint);
+        <!--var result = field.value.length === 0 || regex.test(field.value);-->
+        var result = regex.test(field.value);
+        setMarks(field, result);
+    }
+
+    function checkEmail(field) {
+        setMarks(field, field.validity.valid);
+    }
+
+    function setMarks(field, valid) {
+        yetmark = document.getElementById(field.name + "Yet")
+        checkmark = document.getElementById(field.name + "Check");
+        failmark = document.getElementById(field.name + "Fail");
+
+        yetmark.style.display = "none";
+
+        if (valid) {
+            checkmark.style.display = "inline";
+            failmark.style.display = "none";
+        }   else {
+            checkmark.style.display = "none";
+            failmark.style.display = "inline";
+        }
+    }
+</script>
+</body>
+</html>

@@ -66,6 +66,10 @@
             <input class="button" type="submit" th:value="#{login.proceed}">
         </div>
     </form>
+    <br />
+    <span th:text="#{index.register.label}" th:remove="tag">{Wanna register?}</span>
+    <a href="/reg" th:text="#{index.register.link}">{Register!}</a>
+    <br />
 </div>
 </body>
 </html>
