@@ -16,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import ua.kpi.tef.zu.webtest.dto.LanguageDTO;
 import ua.kpi.tef.zu.webtest.dto.UserDTO;
@@ -120,23 +121,34 @@ public class PageController implements WebMvcConfigurer {
 	}
 
 	@RequestMapping("/reg")
-	public String registerUser(Model model) {
+	public String registerUser(@ModelAttribute User user,
+							   @RequestParam(value = "error", required = false) String error,
+							   Model model) {
 		model.addAttribute("firstNameRegex", "^" + RegistrationValidation.FIRST_NAME_REGEX + "$");
 		model.addAttribute("firstNameCyrRegex", "^" + RegistrationValidation.FIRST_NAME_CYR_REGEX + "$");
 		model.addAttribute("lastNameRegex", "^" + RegistrationValidation.LAST_NAME_REGEX + "$");
 		model.addAttribute("lastNameCyrRegex", "^" + RegistrationValidation.LAST_NAME_CYR_REGEX + "$");
 		model.addAttribute("loginRegex", "^" + RegistrationValidation.LOGIN_REGEX + "$");
 
-		model.addAttribute("newUser", new User());
+		model.addAttribute("error", error != null);
+		model.addAttribute("newUser", user == null ? new User() : user);
 
 		return "reg.html";
 	}
 
 	@RequestMapping("/newuser")
-	public RedirectView newUser(@ModelAttribute User user) {
+	public RedirectView newUser(@ModelAttribute User user, RedirectAttributes redirectAttributes) {
 		System.out.println(user);
 
-		User newUser = User.builder()
+		RedirectView redirectView = new RedirectView();
+
+		//if (!verifyUserFields(user)) {
+			redirectAttributes.addFlashAttribute("user", user);
+			redirectView.setUrl("/reg?error");
+			return redirectView;
+		//};
+
+		/*User newUser = User.builder()
 				.firstName(user.getFirstName())
 				.firstNameCyr(user.getFirstNameCyr())
 				.lastName(user.getLastName())
@@ -153,9 +165,17 @@ public class PageController implements WebMvcConfigurer {
 
 
 
-		RedirectView redirectView = new RedirectView();
+
 		redirectView.setUrl("/");
-		return redirectView;
+		return redirectView;*/
+	}
+
+	private boolean verifyUserFields(User user) {
+		return  user.getFirstName().matches(RegistrationValidation.FIRST_NAME_REGEX) &&
+				user.getFirstNameCyr().matches(RegistrationValidation.FIRST_NAME_CYR_REGEX) &&
+				user.getLastName().matches(RegistrationValidation.LAST_NAME_REGEX) &&
+				user.getLastNameCyr().matches(RegistrationValidation.LAST_NAME_CYR_REGEX) &&
+				user.getLogin().matches(RegistrationValidation.LOGIN_REGEX);
 	}
 
 	private boolean currentUserIsAdmin() {

@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="webtest.css">
 </head>
 
-<body>
+<body onload="checkFields()">
 <div class="column">
     <h1 th:text="#{reg.welcome}">{Welcome header}</h1>
 
@@ -127,9 +127,17 @@
         checkEmail(email)
     }, false)
 
+    function checkFields(){
+        checkField(firstName, firstNameRegex);
+        checkField(firstNameCyr, firstNameCyrRegex);
+        checkField(lastName, lastNameRegex);
+        checkField(lastNameCyr, lastNameCyrRegex);
+        checkField(login, loginRegex);
+        checkEmail(email);
+    }
+
     function checkField(field, constraint) {
         regex = new RegExp(constraint);
-        <!--var result = field.value.length === 0 || regex.test(field.value);-->
         var result = regex.test(field.value);
         setMarks(field, result);
     }
@@ -143,12 +151,16 @@
         checkmark = document.getElementById(field.name + "Check");
         failmark = document.getElementById(field.name + "Fail");
 
-        yetmark.style.display = "none";
-
-        if (valid) {
+        if (field.value.length === 0) {
+            yetmark.style.display = "inline";
+            checkmark.style.display = "none";
+            failmark.style.display = "none";
+        } else if (valid) {
+            yetmark.style.display = "none";
             checkmark.style.display = "inline";
             failmark.style.display = "none";
         }   else {
+            yetmark.style.display = "none";
             checkmark.style.display = "none";
             failmark.style.display = "inline";
         }
