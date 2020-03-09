@@ -1,5 +1,6 @@
 package ua.kpi.tef.zu.webtest.service;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -7,6 +8,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ua.kpi.tef.zu.webtest.dto.UserDTO;
 import ua.kpi.tef.zu.webtest.dto.UserListDTO;
+import ua.kpi.tef.zu.webtest.entity.User;
 import ua.kpi.tef.zu.webtest.repository.UserRepo;
 
 import javax.validation.constraints.NotNull;
@@ -32,6 +34,11 @@ public class UserService implements UserDetailsService {
 	/*public UserDetails findByUserLogin (UserDTO userDTO){
 		return userRepo.findByLoginAndPassword(userDTO.getLogin(), userDTO.getPassword()).orElse(null);
 	}*/
+
+	@SuppressWarnings("RedundantThrows")
+	public void saveNewUser(User user) throws Exception {
+		userRepo.save(user);
+	}
 
 	@Override
 	public UserDetails loadUserByUsername(@NotNull String username) throws UsernameNotFoundException {

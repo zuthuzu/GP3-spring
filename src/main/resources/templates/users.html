@@ -24,8 +24,12 @@
         <h3 th:text="#{users.header} + ':'">{Here goes user table}</h3>
         <table>
             <tr th:each="user : ${users}">
-                <td>
+                <td width="40%">
                     👉 <span th:text="${user.firstName} + ' ' + ${user.lastName}" th:remove="tag">{Full user name}</span>
+                    <br /><br />
+                </td>
+                <td width="40%">
+                    <span th:text="${user.role}" th:remove="tag">{Role}</span>
                     <br /><br />
                 </td>
             </tr>

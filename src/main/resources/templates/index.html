@@ -27,7 +27,11 @@
         <h3 class="black" th:text="#{login.logout}">{Logout ok}</h3>
     </div>
 
-    <div th:unless="${error or logout}">
+    <div class="info" th:if="${reg}">
+        <h3 class="black" th:text="#{login.registered}">{Reg ok}</h3>
+    </div>
+
+    <div th:unless="${error or logout or reg}">
         <span th:text="#{index.preamble}" th:remove="tag">{Some intro}</span>
     </div>
     <br />
@@ -53,7 +57,6 @@
             <input type="text" id="username" th:placeholder="#{login.username}" name="username">
             <br />
         </div>
-        <br />
         <div>
             <label for="password" th:text="#{login.password}">{Password}</label>
             <br />

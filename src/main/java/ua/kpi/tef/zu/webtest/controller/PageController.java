@@ -1,8 +1,10 @@
 package ua.kpi.tef.zu.webtest.controller;
 
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -66,6 +68,7 @@ public class PageController implements WebMvcConfigurer {
 	@RequestMapping("/")
 	public String mainPage(@RequestParam(value = "error", required = false) String error,
 						   @RequestParam(value = "logout", required = false) String logout,
+						   @RequestParam(value = "reg", required = false) String reg,
 						   Model model) {
 
 		//if we can get user auth from SecurityContextHolder, then he's already logged in, and doesn't need to be here
@@ -82,6 +85,7 @@ public class PageController implements WebMvcConfigurer {
 
 		model.addAttribute("error", error != null);
 		model.addAttribute("logout", logout != null);
+		model.addAttribute("reg", reg != null);
 
 		return "index.html";
 	}
@@ -123,7 +127,9 @@ public class PageController implements WebMvcConfigurer {
 	@RequestMapping("/reg")
 	public String registerUser(@ModelAttribute User user,
 							   @RequestParam(value = "error", required = false) String error,
+							   @RequestParam(value = "duplicate", required = false) String duplicate,
 							   Model model) {
+
 		model.addAttribute("firstNameRegex", "^" + RegistrationValidation.FIRST_NAME_REGEX + "$");
 		model.addAttribute("firstNameCyrRegex", "^" + RegistrationValidation.FIRST_NAME_CYR_REGEX + "$");
 		model.addAttribute("lastNameRegex", "^" + RegistrationValidation.LAST_NAME_REGEX + "$");
@@ -131,6 +137,7 @@ public class PageController implements WebMvcConfigurer {
 		model.addAttribute("loginRegex", "^" + RegistrationValidation.LOGIN_REGEX + "$");
 
 		model.addAttribute("error", error != null);
+		model.addAttribute("duplicate", duplicate != null);
 		model.addAttribute("newUser", user == null ? new User() : user);
 
 		return "reg.html";
@@ -142,13 +149,13 @@ public class PageController implements WebMvcConfigurer {
 
 		RedirectView redirectView = new RedirectView();
 
-		//if (!verifyUserFields(user)) {
+		if (!verifyUserFields(user)) {
 			redirectAttributes.addFlashAttribute("user", user);
 			redirectView.setUrl("/reg?error");
 			return redirectView;
-		//};
+		}
 
-		/*User newUser = User.builder()
+		User newUser = User.builder()
 				.firstName(user.getFirstName())
 				.firstNameCyr(user.getFirstNameCyr())
 				.lastName(user.getLastName())
@@ -163,11 +170,32 @@ public class PageController implements WebMvcConfigurer {
 				.enabled(true)
 				.build();
 
+		try {
+			userService.saveNewUser(newUser);
 
+		} catch (DataIntegrityViolationException e) {
+			redirectAttributes.addFlashAttribute("user", user);
 
+			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
+				//most likely, either login or email aren't unique
+				System.out.println(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
+				redirectView.setUrl("/reg?duplicate");
+			} else {
+				e.printStackTrace();
+				redirectView.setUrl("/reg?error");
+			}
 
-		redirectView.setUrl("/");
-		return redirectView;*/
+			return redirectView;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			redirectAttributes.addFlashAttribute("user", user);
+			redirectView.setUrl("/reg?error");
+			return redirectView;
+		}
+
+		redirectView.setUrl("/?reg");
+		return redirectView;
 	}
 
 	private boolean verifyUserFields(User user) {
