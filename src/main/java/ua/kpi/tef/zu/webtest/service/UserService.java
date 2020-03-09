@@ -2,10 +2,12 @@ package ua.kpi.tef.zu.webtest.service;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import ua.kpi.tef.zu.webtest.controller.RegistrationException;
 import ua.kpi.tef.zu.webtest.dto.UserDTO;
 import ua.kpi.tef.zu.webtest.dto.UserListDTO;
 import ua.kpi.tef.zu.webtest.entity.User;
@@ -30,9 +32,25 @@ public class UserService implements UserDetailsService {
 		return new UserListDTO(userRepo.findAll());
 	}
 
-	@SuppressWarnings("RedundantThrows")
-	public void saveNewUser(User user) throws Exception {
-		userRepo.save(user);
+	public void saveNewUser(User user) throws RegistrationException {
+		try {
+			userRepo.save(user);
+		} catch (DataIntegrityViolationException e) {
+			RegistrationException registrationException = new RegistrationException(e);
+
+			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
+				//most likely, either login or email aren't unique
+				System.out.println(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
+				registrationException.setDuplicate(true);
+			} else {
+				e.printStackTrace();
+			}
+			throw registrationException;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new RegistrationException(e);
+		}
 	}
 
 	@Override

@@ -157,22 +157,10 @@ public class PageController implements WebMvcConfigurer {
 
 		try {
 			userService.saveNewUser(getUserWithPermissions(modelUser));
-
-		} catch (DataIntegrityViolationException e) {
-
-			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
-				//most likely, either login or email aren't unique
-				System.out.println(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
-				redirectView.setUrl("/reg?duplicate");
-			} else {
-				e.printStackTrace();
-				redirectView.setUrl("/reg?error");
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (RegistrationException e) {
 			redirectAttributes.addFlashAttribute("user", modelUser);
-			redirectView.setUrl("/reg?error");
+			redirectView.setUrl(e.isDuplicate() ? "/reg?duplicate" : "/reg?error");
+			return redirectView;
 		}
 
 		redirectView.setUrl("/?reg");
