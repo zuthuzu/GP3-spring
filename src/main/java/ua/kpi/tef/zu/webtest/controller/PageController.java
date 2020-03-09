@@ -144,37 +144,21 @@ public class PageController implements WebMvcConfigurer {
 	}
 
 	@RequestMapping("/newuser")
-	public RedirectView newUser(@ModelAttribute User user, RedirectAttributes redirectAttributes) {
-		System.out.println(user);
+	public RedirectView newUser(@ModelAttribute User modelUser, RedirectAttributes redirectAttributes) {
+		System.out.println(modelUser);
 
 		RedirectView redirectView = new RedirectView();
 
-		if (!verifyUserFields(user)) {
-			redirectAttributes.addFlashAttribute("user", user);
+		if (!verifyUserFields(modelUser)) {
+			redirectAttributes.addFlashAttribute("user", modelUser);
 			redirectView.setUrl("/reg?error");
 			return redirectView;
 		}
 
-		User newUser = User.builder()
-				.firstName(user.getFirstName())
-				.firstNameCyr(user.getFirstNameCyr())
-				.lastName(user.getLastName())
-				.lastNameCyr(user.getLastNameCyr())
-				.login(user.getLogin())
-				.email(user.getEmail())
-				.password(passwordEncoder.encode(user.getPassword()))
-				.role(RoleType.ROLE_USER)
-				.accountNonExpired(true)
-				.accountNonLocked(true)
-				.credentialsNonExpired(true)
-				.enabled(true)
-				.build();
-
 		try {
-			userService.saveNewUser(newUser);
+			userService.saveNewUser(getUserWithPermissions(modelUser));
 
 		} catch (DataIntegrityViolationException e) {
-			redirectAttributes.addFlashAttribute("user", user);
 
 			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
 				//most likely, either login or email aren't unique
@@ -185,17 +169,31 @@ public class PageController implements WebMvcConfigurer {
 				redirectView.setUrl("/reg?error");
 			}
 
-			return redirectView;
-
 		} catch (Exception e) {
 			e.printStackTrace();
-			redirectAttributes.addFlashAttribute("user", user);
+			redirectAttributes.addFlashAttribute("user", modelUser);
 			redirectView.setUrl("/reg?error");
-			return redirectView;
 		}
 
 		redirectView.setUrl("/?reg");
 		return redirectView;
+	}
+
+	private User getUserWithPermissions(User user) {
+		return User.builder()
+					.firstName(user.getFirstName())
+					.firstNameCyr(user.getFirstNameCyr())
+					.lastName(user.getLastName())
+					.lastNameCyr(user.getLastNameCyr())
+					.login(user.getLogin())
+					.email(user.getEmail())
+					.password(passwordEncoder.encode(user.getPassword()))
+					.role(RoleType.ROLE_USER)
+					.accountNonExpired(true)
+					.accountNonLocked(true)
+					.credentialsNonExpired(true)
+					.enabled(true)
+					.build();
 	}
 
 	private boolean verifyUserFields(User user) {

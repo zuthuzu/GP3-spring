@@ -27,13 +27,8 @@ public class UserService implements UserDetailsService {
 	}
 
 	public UserListDTO getAllUsers() {
-		//TODO checking for an empty user list
 		return new UserListDTO(userRepo.findAll());
 	}
-
-	/*public UserDetails findByUserLogin (UserDTO userDTO){
-		return userRepo.findByLoginAndPassword(userDTO.getLogin(), userDTO.getPassword()).orElse(null);
-	}*/
 
 	@SuppressWarnings("RedundantThrows")
 	public void saveNewUser(User user) throws Exception {
