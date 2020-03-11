@@ -10,6 +10,8 @@ class WebtestApplicationTests {
 
 	@Test
 	void contextLoads() {
+		PasswordEncoder encoder = new BCryptPasswordEncoder();
+		System.out.println(encoder.encode("admin"));
 	}
 
 }

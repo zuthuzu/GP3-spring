@@ -38,13 +38,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	@Autowired
 	private UserService userService;
 
-	@Bean
-	public PasswordEncoder somePasswordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
+	@Autowired
+	public PasswordEncoder localEncoder;
 
 	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-		auth.userDetailsService(userService).passwordEncoder(somePasswordEncoder());
+		auth.userDetailsService(userService).passwordEncoder(localEncoder);
 	}
 }

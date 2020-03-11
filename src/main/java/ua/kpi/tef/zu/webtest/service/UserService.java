@@ -6,13 +6,16 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ua.kpi.tef.zu.webtest.controller.RegistrationException;
 import ua.kpi.tef.zu.webtest.dto.UserDTO;
 import ua.kpi.tef.zu.webtest.dto.UserListDTO;
+import ua.kpi.tef.zu.webtest.entity.RoleType;
 import ua.kpi.tef.zu.webtest.entity.User;
 import ua.kpi.tef.zu.webtest.repository.UserRepo;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 
 /**
@@ -24,6 +27,9 @@ public class UserService implements UserDetailsService {
 	private UserRepo userRepo;
 
 	@Autowired
+	private PasswordEncoder localEncoder;
+
+	@Autowired
 	public UserService(UserRepo userRepository) {
 		this.userRepo = userRepository;
 	}
@@ -32,9 +38,33 @@ public class UserService implements UserDetailsService {
 		return new UserListDTO(userRepo.findAll());
 	}
 
+	@PostConstruct
+	private void createSystemAdmin() {
+		if (userRepo.findByLogin("admin").isPresent()) {
+			return;
+		}
+
+		User rawAdminCredentials = User.builder()
+				.firstName("System")
+				.firstNameCyr("Системный")
+				.lastName("Admin")
+				.lastNameCyr("Администратор")
+				.login("admin")
+				.email("admin@zu.tef.kpi.ua")
+				.password("admin")
+				.role(RoleType.ROLE_ADMIN)
+				.build();
+
+		try {
+			saveNewUser(rawAdminCredentials);
+		} catch (RegistrationException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public void saveNewUser(User user) throws RegistrationException {
 		try {
-			userRepo.save(user);
+			userRepo.save(getUserWithPermissions(user));
 		} catch (DataIntegrityViolationException e) {
 			RegistrationException registrationException = new RegistrationException(e);
 
@@ -51,6 +81,23 @@ public class UserService implements UserDetailsService {
 			e.printStackTrace();
 			throw new RegistrationException(e);
 		}
+	}
+
+	private User getUserWithPermissions(User user) {
+		return User.builder()
+				.firstName(user.getFirstName())
+				.firstNameCyr(user.getFirstNameCyr())
+				.lastName(user.getLastName())
+				.lastNameCyr(user.getLastNameCyr())
+				.login(user.getLogin())
+				.email(user.getEmail())
+				.password(localEncoder.encode(user.getPassword()))
+				.role(user.getRole() == null ? RoleType.ROLE_USER : user.getRole())
+				.accountNonExpired(true)
+				.accountNonLocked(true)
+				.credentialsNonExpired(true)
+				.enabled(true)
+				.build();
 	}
 
 	@Override

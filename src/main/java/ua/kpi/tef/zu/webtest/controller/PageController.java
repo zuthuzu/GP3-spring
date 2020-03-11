@@ -1,13 +1,10 @@
 package ua.kpi.tef.zu.webtest.controller;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -37,9 +34,6 @@ public class PageController implements WebMvcConfigurer {
 
 	private LanguageDTO languageSwitcher = new LanguageDTO();
 	private final UserService userService;
-
-	@Autowired
-	private PasswordEncoder passwordEncoder;
 
 	@Autowired
 	public PageController(UserService userService) {
@@ -156,7 +150,7 @@ public class PageController implements WebMvcConfigurer {
 		}
 
 		try {
-			userService.saveNewUser(getUserWithPermissions(modelUser));
+			userService.saveNewUser(modelUser);
 		} catch (RegistrationException e) {
 			redirectAttributes.addFlashAttribute("user", modelUser);
 			redirectView.setUrl(e.isDuplicate() ? "/reg?duplicate" : "/reg?error");
@@ -165,23 +159,6 @@ public class PageController implements WebMvcConfigurer {
 
 		redirectView.setUrl("/?reg");
 		return redirectView;
-	}
-
-	private User getUserWithPermissions(User user) {
-		return User.builder()
-					.firstName(user.getFirstName())
-					.firstNameCyr(user.getFirstNameCyr())
-					.lastName(user.getLastName())
-					.lastNameCyr(user.getLastNameCyr())
-					.login(user.getLogin())
-					.email(user.getEmail())
-					.password(passwordEncoder.encode(user.getPassword()))
-					.role(RoleType.ROLE_USER)
-					.accountNonExpired(true)
-					.accountNonLocked(true)
-					.credentialsNonExpired(true)
-					.enabled(true)
-					.build();
 	}
 
 	private boolean verifyUserFields(User user) {
