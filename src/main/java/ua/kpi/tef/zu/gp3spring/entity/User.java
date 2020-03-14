@@ -16,17 +16,20 @@ import javax.persistence.*;
 @ToString
 
 @Entity
-@Table(name = "user",
+@Table(name = "users",
 		uniqueConstraints = {@UniqueConstraint(columnNames = {"login", "phone", "email"})})
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	@Column(name = "id", nullable = false)
 	private Long id;
+
 	@Column(nullable = false)
 	private String login;
+
 	@Column(nullable = false)
 	private String name;
+
 	@Column(nullable = false)
 	private String phone;
 

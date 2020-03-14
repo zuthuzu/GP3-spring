@@ -1,5 +1,6 @@
 package ua.kpi.tef.zu.gp3spring.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,6 +23,7 @@ import javax.validation.constraints.NotNull;
  * Created by Anton Domin on 2020-03-05
  */
 
+@Slf4j
 @Service
 public class UserService implements UserDetailsService {
 	private UserRepo userRepo;
@@ -68,7 +70,7 @@ public class UserService implements UserDetailsService {
 
 			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
 				//most likely, either login or email aren't unique
-				System.out.println(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
+				log.info(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
 				registrationException.setDuplicate(true);
 			} else {
 				e.printStackTrace();

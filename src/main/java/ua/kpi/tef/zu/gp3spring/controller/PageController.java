@@ -1,5 +1,6 @@
 package ua.kpi.tef.zu.gp3spring.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -29,6 +30,7 @@ import java.util.Locale;
 /**
  * Created by Anton Domin on 2020-03-04
  */
+@Slf4j
 @Controller
 public class PageController implements WebMvcConfigurer {
 
@@ -153,7 +155,7 @@ public class PageController implements WebMvcConfigurer {
 
 	@RequestMapping("/newuser")
 	public RedirectView newUser(@ModelAttribute User modelUser, RedirectAttributes redirectAttributes) {
-		System.out.println(modelUser);
+		log.info("Obtained new user credentials from front end: " + modelUser);
 
 		RedirectView redirectView = new RedirectView();
 

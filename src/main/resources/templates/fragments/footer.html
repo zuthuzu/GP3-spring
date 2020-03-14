@@ -1,0 +1,14 @@
+<!DOCTYPE HTML>
+<!--suppress HtmlUnknownAttribute -->
+<html xmlns:th="https://www.thymeleaf.org">
+<body>
+    <footer th:fragment="footer">
+        <div class="row bg-light">
+            <div class="col small">
+                <span th:text="#{general.privacy}" th:remove="tag">{Privacy}</span>
+                <br />
+                <span th:text="#{general.copyright}" th:remove="tag">{Copyright}</span>
+            </div>
+        </div>
+    </footer>
+</body>

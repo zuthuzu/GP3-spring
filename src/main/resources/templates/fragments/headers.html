@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<!--suppress HtmlUnknownAttribute -->
+<html xmlns:th="https://www.thymeleaf.org">
+<body>
+    <div th:fragment="header-guest">
+    <div class="row bg-light">
+        <div class="col-sm-8">
+            <h1 th:text="#{header.brand}">REPAIR AGENCY</h1>
+        </div>
+        <div class="col p-2 d-flex justify-content-end">
+            <div class="dropdown show">
+                <button type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" th:text="#{header.language}">
+                    {Choose language}
+                </button>
+
+                <div class="dropdown-menu">
+                    <div th:each="current : ${supported}" th:remove="tag">
+                        <a class="dropdown-item" th:href="'/?l=' + ${current.code}" th:text="${current.name}">Action</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-2">
+
+            </div>
+
+            <div class="dropdown show">
+                <button type="button" class="btn btn-light dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" th:text="#{login.prompt}">
+                    {Login}
+                </button>
+
+                <div class="dropdown-menu">
+                    <form method="post" class="px-4 py-3">
+                        <div class="form-group">
+                            <label for="username" th:text="#{login.username}">{Username}</label>
+                            <input class="form-control" type="text" id="username" th:placeholder="#{login.username}" name="username">
+                        </div>
+                        <div class="form-group">
+                            <label for="password" th:text="#{login.password}">{Password}</label>
+                            <input class="form-control" type="password" id="password" th:placeholder="#{login.password}" name="password">
+                        </div>
+                        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden">
+                        <div>
+                            <input class="btn btn-primary" type="submit" th:value="#{login.proceed}">
+                        </div>
+                    </form>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item">
+                        <span th:text="#{index.register.label}" th:remove="tag">{Wanna register?}</span>
+                        <br/>
+                        <a href="/reg" th:text="#{index.register.link}">{Register!}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+</body>
