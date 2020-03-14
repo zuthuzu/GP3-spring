@@ -1,6 +1,6 @@
-package ua.kpi.tef.zu.webtest.dto;
+package ua.kpi.tef.zu.gp3spring.dto;
 
-import ua.kpi.tef.zu.webtest.controller.SupportedLanguages;
+import ua.kpi.tef.zu.gp3spring.controller.SupportedLanguages;
 
 import java.util.Arrays;
 import java.util.Locale;

@@ -1,6 +1,4 @@
-package ua.kpi.tef.zu.webtest.controller;
-
-import org.springframework.dao.DataIntegrityViolationException;
+package ua.kpi.tef.zu.gp3spring.controller;
 
 /**
  * Created by Anton Domin on 2020-03-09

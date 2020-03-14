@@ -1,4 +1,4 @@
-package ua.kpi.tef.zu.webtest.service;
+package ua.kpi.tef.zu.gp3spring.service;
 
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,12 +8,12 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ua.kpi.tef.zu.webtest.controller.RegistrationException;
-import ua.kpi.tef.zu.webtest.dto.UserDTO;
-import ua.kpi.tef.zu.webtest.dto.UserListDTO;
-import ua.kpi.tef.zu.webtest.entity.RoleType;
-import ua.kpi.tef.zu.webtest.entity.User;
-import ua.kpi.tef.zu.webtest.repository.UserRepo;
+import ua.kpi.tef.zu.gp3spring.controller.RegistrationException;
+import ua.kpi.tef.zu.gp3spring.dto.UserDTO;
+import ua.kpi.tef.zu.gp3spring.dto.UserListDTO;
+import ua.kpi.tef.zu.gp3spring.entity.RoleType;
+import ua.kpi.tef.zu.gp3spring.entity.User;
+import ua.kpi.tef.zu.gp3spring.repository.UserRepo;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
@@ -45,11 +45,9 @@ public class UserService implements UserDetailsService {
 		}
 
 		User rawAdminCredentials = User.builder()
-				.firstName("System")
-				.firstNameCyr("Системный")
-				.lastName("Admin")
-				.lastNameCyr("Администратор")
+				.name("sysadmin")
 				.login("admin")
+				.phone("0504474405") //maybe replace with some placeholder or default contact?
 				.email("admin@zu.tef.kpi.ua")
 				.password("admin")
 				.role(RoleType.ROLE_ADMIN)
@@ -85,11 +83,9 @@ public class UserService implements UserDetailsService {
 
 	private User getUserWithPermissions(User user) {
 		return User.builder()
-				.firstName(user.getFirstName())
-				.firstNameCyr(user.getFirstNameCyr())
-				.lastName(user.getLastName())
-				.lastNameCyr(user.getLastNameCyr())
+				.name(user.getName())
 				.login(user.getLogin())
+				.phone(cleanPhoneNumber(user.getPhone()))
 				.email(user.getEmail())
 				.password(localEncoder.encode(user.getPassword()))
 				.role(user.getRole() == null ? RoleType.ROLE_USER : user.getRole())
@@ -98,6 +94,18 @@ public class UserService implements UserDetailsService {
 				.credentialsNonExpired(true)
 				.enabled(true)
 				.build();
+	}
+
+	private String cleanPhoneNumber(String rawNumber) {
+		StringBuilder result = new StringBuilder();
+
+		for (char n : rawNumber.toCharArray()) {
+			if (Character.isDigit(n)) {
+				result.append(n);
+			}
+		}
+
+		return result.toString();
 	}
 
 	@Override

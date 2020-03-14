@@ -1,7 +1,7 @@
-package ua.kpi.tef.zu.webtest.dto;
+package ua.kpi.tef.zu.gp3spring.dto;
 
 import lombok.*;
-import ua.kpi.tef.zu.webtest.entity.User;
+import ua.kpi.tef.zu.gp3spring.entity.User;
 
 import java.util.List;
 

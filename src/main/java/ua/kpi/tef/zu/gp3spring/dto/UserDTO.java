@@ -1,8 +1,8 @@
-package ua.kpi.tef.zu.webtest.dto;
+package ua.kpi.tef.zu.gp3spring.dto;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import ua.kpi.tef.zu.webtest.entity.User;
+import ua.kpi.tef.zu.gp3spring.entity.User;
 
 import java.util.Collection;
 import java.util.HashSet;

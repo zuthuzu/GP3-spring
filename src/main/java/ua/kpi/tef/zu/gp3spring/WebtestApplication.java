@@ -1,4 +1,4 @@
-package ua.kpi.tef.zu.webtest;
+package ua.kpi.tef.zu.gp3spring;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

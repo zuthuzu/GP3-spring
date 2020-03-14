@@ -1,8 +1,8 @@
-package ua.kpi.tef.zu.webtest.repository;
+package ua.kpi.tef.zu.gp3spring.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import ua.kpi.tef.zu.webtest.entity.User;
+import ua.kpi.tef.zu.gp3spring.entity.User;
 
 import java.util.Optional;
 

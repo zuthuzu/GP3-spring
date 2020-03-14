@@ -1,4 +1,4 @@
-package ua.kpi.tef.zu.webtest.controller;
+package ua.kpi.tef.zu.gp3spring.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -17,11 +17,11 @@ import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
-import ua.kpi.tef.zu.webtest.dto.LanguageDTO;
-import ua.kpi.tef.zu.webtest.dto.UserDTO;
-import ua.kpi.tef.zu.webtest.entity.RoleType;
-import ua.kpi.tef.zu.webtest.entity.User;
-import ua.kpi.tef.zu.webtest.service.UserService;
+import ua.kpi.tef.zu.gp3spring.dto.LanguageDTO;
+import ua.kpi.tef.zu.gp3spring.dto.UserDTO;
+import ua.kpi.tef.zu.gp3spring.entity.RoleType;
+import ua.kpi.tef.zu.gp3spring.entity.User;
+import ua.kpi.tef.zu.gp3spring.service.UserService;
 
 import java.util.List;
 import java.util.Locale;
@@ -88,10 +88,22 @@ public class PageController implements WebMvcConfigurer {
 	public RedirectView localRedirect() {
 		RedirectView redirectView = new RedirectView();
 
-		if (currentUserIsAdmin()) {
-			redirectView.setUrl("/users");
-		} else {
-			redirectView.setUrl("/lobby");
+		User currentUser = getCurrentUser();
+		switch (currentUser.getRole()) {
+			case ROLE_ADMIN:
+				redirectView.setUrl("/users");
+				break;
+			case ROLE_MANAGER:
+				redirectView.setUrl("/manage");
+				break;
+			case ROLE_MASTER:
+				redirectView.setUrl("/work");
+				break;
+			case ROLE_USER:
+				redirectView.setUrl("/lobby");
+				break;
+			default:
+				redirectView.setUrl("/error");
 		}
 
 		return redirectView;
@@ -108,8 +120,12 @@ public class PageController implements WebMvcConfigurer {
 	@RequestMapping("/users")
 	public String usersPage(Model model) {
 		model.addAttribute("language", languageSwitcher);
-		model.addAttribute("user", getCurrentUser());
-		if (currentUserIsAdmin()) {
+
+		User currentUser = getCurrentUser();
+		model.addAttribute("user", currentUser);
+
+		//TODO full role split doublecheck
+		if (currentUser.getRole() == RoleType.ROLE_ADMIN) {
 			model.addAttribute("users", getAllUsers());
 			return "users.html";
 		} else {
@@ -124,10 +140,8 @@ public class PageController implements WebMvcConfigurer {
 							   @RequestParam(value = "duplicate", required = false) String duplicate,
 							   Model model) {
 
-		model.addAttribute("firstNameRegex", "^" + RegistrationValidation.FIRST_NAME_REGEX + "$");
-		model.addAttribute("firstNameCyrRegex", "^" + RegistrationValidation.FIRST_NAME_CYR_REGEX + "$");
-		model.addAttribute("lastNameRegex", "^" + RegistrationValidation.LAST_NAME_REGEX + "$");
-		model.addAttribute("lastNameCyrRegex", "^" + RegistrationValidation.LAST_NAME_CYR_REGEX + "$");
+		model.addAttribute("nameRegex", "^" + RegistrationValidation.NAME_REGEX + "$");
+		model.addAttribute("phoneRegex", "^" + RegistrationValidation.PHONE_REGEX + "$");
 		model.addAttribute("loginRegex", "^" + RegistrationValidation.LOGIN_REGEX + "$");
 
 		model.addAttribute("error", error != null);
@@ -162,16 +176,10 @@ public class PageController implements WebMvcConfigurer {
 	}
 
 	private boolean verifyUserFields(User user) {
-		return  user.getFirstName().matches(RegistrationValidation.FIRST_NAME_REGEX) &&
-				user.getFirstNameCyr().matches(RegistrationValidation.FIRST_NAME_CYR_REGEX) &&
-				user.getLastName().matches(RegistrationValidation.LAST_NAME_REGEX) &&
-				user.getLastNameCyr().matches(RegistrationValidation.LAST_NAME_CYR_REGEX) &&
+		return  user.getName().matches(RegistrationValidation.NAME_REGEX) &&
+				user.getEmail().matches(RegistrationValidation.EMAIL_REGEX) &&
+				user.getPhone().matches(RegistrationValidation.PHONE_REGEX) &&
 				user.getLogin().matches(RegistrationValidation.LOGIN_REGEX);
-	}
-
-	private boolean currentUserIsAdmin() {
-		User currentUser = getCurrentUser();
-		return currentUser.getRole() == RoleType.ROLE_ADMIN || currentUser.getRole() == RoleType.ROLE_ROOT;
 	}
 
 	private User getCurrentUser() {
@@ -184,21 +192,11 @@ public class PageController implements WebMvcConfigurer {
 			return new User(); //this is likely wrong, there should be a better way to build dummy objects in Spring
 		}
 
-		substituteWithCyrillic(currentUser.getUser());
 		return currentUser.getUser();
 	}
 
 	private List<User> getAllUsers() {
-		List<User> users = userService.getAllUsers().getUsers();
-		users.forEach(this::substituteWithCyrillic);
-		return users;
-	}
-
-	private void substituteWithCyrillic (User user) {
-		if (languageSwitcher.isLocaleCyrillic()) {
-			user.setFirstName(user.getFirstNameCyr());
-			user.setLastName(user.getLastNameCyr());
-		}
+		return userService.getAllUsers().getUsers();
 	}
 }
 

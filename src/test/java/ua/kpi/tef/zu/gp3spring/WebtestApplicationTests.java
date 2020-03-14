@@ -1,4 +1,4 @@
-package ua.kpi.tef.zu.webtest;
+package ua.kpi.tef.zu.gp3spring;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

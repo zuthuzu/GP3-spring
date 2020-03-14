@@ -1,4 +1,4 @@
-package ua.kpi.tef.zu.webtest.controller;
+package ua.kpi.tef.zu.gp3spring.controller;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;

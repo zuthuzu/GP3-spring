@@ -1,4 +1,4 @@
-package ua.kpi.tef.zu.webtest.entity;
+package ua.kpi.tef.zu.gp3spring.entity;
 
 import lombok.*;
 
@@ -17,24 +17,24 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "user",
-		uniqueConstraints = {@UniqueConstraint(columnNames = {"login", "email"})})
+		uniqueConstraints = {@UniqueConstraint(columnNames = {"login", "phone", "email"})})
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	@Column(name = "id", nullable = false)
 	private Long id;
-	@Column(name = "first_name", nullable = false)
-	private String firstName;
-	@Column(name = "first_name_cyr", nullable = false)
-	private String firstNameCyr;
-	@Column(name = "last_name", nullable = false)
-	private String lastName;
-	@Column(name = "last_name_cyr", nullable = false)
-	private String lastNameCyr;
 	@Column(nullable = false)
 	private String login;
 	@Column(nullable = false)
+	private String name;
+	@Column(nullable = false)
+	private String phone;
+
+	//email is optional, but if it's entered, then it should be unique.
+	//it's a bit of a grey area, but apparently MySQL unique constraint allows multiple nulls, which is what we need
+	@Column
 	private String email;
+
 	@Column(name = "role")
 	@Enumerated(EnumType.STRING)
 	private RoleType role;
