@@ -2,43 +2,51 @@
 <!--suppress HtmlUnknownAttribute -->
 <html xmlns:th="https://www.thymeleaf.org">
 <head>
-    <title>Web Test</title>
+    <title th:text="#{general.title}">REPAIR</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="webtest.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/bootstrap-theme.css">
 </head>
 <body>
-<div class="column">
-    <h1 th:text="#{lobby.welcome}">{Header}</h1>
-    <div>
-        <span th:text="#{general.login}" th:remove="tag">{Logged in as}</span>:
-        <span th:text="${user.firstName} + ' ' + ${user.lastName}" th:remove="tag">{Logged in as}</span>
-        (<a href="/logout" th:text="#{general.logout}">{Log out}</a>)
+<div class="container">
+    <div th:include="fragments/headers :: header-user" th:remove="tag"></div>
+
+    <div class="row">
+        <div class="col">
+            <br />
+        </div>
     </div>
-    <br />
-    <div>
-        <span th:text="#{lobby.language}" th:remove="tag">{Your language}</span>:
-        <span th:text="${language.name}" th:remove="tag">{whatever locale is selected}</span>
+
+    <div class="row bg-light">
+        <div class="col">
+            <h3 th:text="#{users.header} + ':'">{Here goes user table}</h3>
+            <table>
+                <tr th:each="user : ${users}">
+                    <td class="w-30">
+                        👉 <span th:text="${user.name}" th:remove="tag">{User name}</span>
+                        <br /><br />
+                    </td>
+                    <td class="w-30">
+                        <span th:text="${user.phone}" th:remove="tag">{Phone}</span>
+                        <br /><br />
+                    </td>
+                    <td class="w-30">
+                        <span th:text="${user.role}" th:remove="tag">{Role}</span>
+                        <br /><br />
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
-    <br />
-    <div>
-        <h3 th:text="#{users.header} + ':'">{Here goes user table}</h3>
-        <table>
-            <tr th:each="user : ${users}">
-                <td width="40%">
-                    👉 <span th:text="${user.firstName} + ' ' + ${user.lastName}" th:remove="tag">{Full user name}</span>
-                    <br /><br />
-                </td>
-                <td width="40%">
-                    <span th:text="${user.role}" th:remove="tag">{Role}</span>
-                    <br /><br />
-                </td>
-            </tr>
-        </table>
+
+    <div class="row">
+        <div class="col">
+            <br />
+        </div>
     </div>
-    <br />
-    <div>
-        <span th:text="#{general.placeholder}" th:remove="tag">{Under construction}</span>
-    </div>
+
+    <div th:include="fragments/footer :: footer"></div>
 </div>
+<script th:include="fragments/bootstrap :: js" th:remove="tag"></script>
 </body>
 </html>

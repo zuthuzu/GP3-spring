@@ -72,12 +72,7 @@ public class PageController implements WebMvcConfigurer {
 			return lobbyPage(model);
 		}
 
-		//our web page can be reloaded via JS without form submitting data into languageSwitcher
-		//and locale might change in the meantime. gotta keep it actual for internal purposes
-		languageSwitcher.setChoice(LocaleContextHolder.getLocale().toString());
-
-		model.addAttribute("language", languageSwitcher);
-		model.addAttribute("supported", languageSwitcher.getSupportedLanguages());
+		insertLanguagesIntoModel(model);
 
 		model.addAttribute("error", error != null);
 		model.addAttribute("logout", logout != null);
@@ -113,7 +108,8 @@ public class PageController implements WebMvcConfigurer {
 
 	@RequestMapping("/lobby")
 	public String lobbyPage(Model model) {
-		model.addAttribute("language", languageSwitcher);
+		insertLanguagesIntoModel(model);
+
 		model.addAttribute("user", getCurrentUser());
 		model.addAttribute("error", false);
 		return "lobby.html";
@@ -121,7 +117,7 @@ public class PageController implements WebMvcConfigurer {
 
 	@RequestMapping("/users")
 	public String usersPage(Model model) {
-		model.addAttribute("language", languageSwitcher);
+		insertLanguagesIntoModel(model);
 
 		User currentUser = getCurrentUser();
 		model.addAttribute("user", currentUser);
@@ -141,6 +137,8 @@ public class PageController implements WebMvcConfigurer {
 							   @RequestParam(value = "error", required = false) String error,
 							   @RequestParam(value = "duplicate", required = false) String duplicate,
 							   Model model) {
+
+		insertLanguagesIntoModel(model);
 
 		model.addAttribute("nameRegex", "^" + RegistrationValidation.NAME_REGEX + "$");
 		model.addAttribute("phoneRegex", "^" + RegistrationValidation.PHONE_REGEX + "$");
@@ -175,6 +173,14 @@ public class PageController implements WebMvcConfigurer {
 
 		redirectView.setUrl("/?reg");
 		return redirectView;
+	}
+
+	private void insertLanguagesIntoModel(Model model) {
+		//our web page can be reloaded via JS without form submitting data into languageSwitcher
+		//and locale might change in the meantime. gotta keep it actual for internal purposes
+		languageSwitcher.setChoice(LocaleContextHolder.getLocale().toString());
+		model.addAttribute("language", languageSwitcher);
+		model.addAttribute("supported", languageSwitcher.getSupportedLanguages());
 	}
 
 	private boolean verifyUserFields(User user) {

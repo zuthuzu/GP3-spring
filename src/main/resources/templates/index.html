@@ -2,7 +2,7 @@
 <!--suppress HtmlUnknownAttribute -->
 <html xmlns:th="https://www.thymeleaf.org">
 <head>
-    <title>Web Test</title>
+    <title th:text="#{general.title}">REPAIR</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <!--<link rel="stylesheet" href="webtest.css">-->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
@@ -15,16 +15,16 @@
 
     <div class="row">
         <div class="col">
+            <br />
             <div class="alert alert-danger" role="alert" th:if="${error}">
-                <h3 style="color: Black" th:text="#{login.error}">{Login error}</h3>
+                <span th:text="#{login.error}">{Login error}</span>
             </div>
             <div class="alert alert-success" role="alert" th:if="${logout}">
-                <h3 style="color: Black" th:text="#{login.logout}">{Logout ok}</h3>
+                <span th:text="#{login.logout}">{Logout ok}</span>
             </div>
             <div class="alert alert-success" role="alert" th:if="${reg}">
-                <h3 style="color: Black" th:text="#{login.registered}">{Reg ok}</h3>
+                <span th:text="#{reg.success}">{Reg ok}</span>
             </div>
-            <br />
         </div>
     </div>
 
@@ -32,7 +32,10 @@
         <div class="col">
             <h1 th:text="#{index.welcome}">{Welcome header}</h1>
 
-            <span th:text="#{index.intro}" th:remove="tag">{Wanna register?}</span>
+            <span th:text="#{index.intro}" th:remove="tag">{We do stuff}</span>
+            <br /><br />
+            <span th:text="#{index.sign-in-to-order}" th:remove="tag">{Cmon up}</span>
+            <br /><br />
 
         </div>
     </div>
@@ -45,10 +48,6 @@
 
     <div th:include="fragments/footer :: footer"></div>
 </div>
-<!-- Optional JavaScript -->
-<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script th:include="fragments/bootstrap :: js" th:remove="tag"></script>
 </body>
 </html>

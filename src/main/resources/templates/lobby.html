@@ -2,31 +2,42 @@
 <!--suppress HtmlUnknownAttribute -->
 <html xmlns:th="https://www.thymeleaf.org">
 <head>
-    <title>Web Test</title>
+    <title th:text="#{general.title}">REPAIR</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <link rel="stylesheet" href="webtest.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/bootstrap-theme.css">
 </head>
 <body>
-<div class="column">
-    <h1 th:text="#{lobby.welcome}">{Header}</h1>
-    <div class="alert" th:if="${error}">
-        <h3 class="black" th:text="#{general.access_denied}">{Access denied}</h3>
+<div class="container">
+    <div th:include="fragments/headers :: header-user" th:remove="tag"></div>
+
+    <div class="row">
+        <div class="col">
+            <br />
+            <div class="alert alert-danger" role="alert" th:if="${error}">
+                <span th:text="#{general.access_denied}">{Access denied}</span>
+            </div>
+        </div>
     </div>
-    <br th:if="${error}" />
-    <div>
-        <span th:text="#{general.login}" th:remove="tag">{Logged in as}</span>:
-        <span th:text="${user.firstName} + ' ' + ${user.lastName}" th:remove="tag">{Logged in as}</span>
-        (<a href="/logout" th:text="#{general.logout}">{Log out}</a>)
+
+    <div class="row bg-light">
+        <div class="col">
+            <h1 th:text="#{lobby.welcome}">{Header}</h1>
+            <br th:if="${error}" />
+            <div>
+                <span th:text="#{general.placeholder}" th:remove="tag">{Under construction}</span>
+            </div>
+        </div>
     </div>
-    <br />
-    <div>
-        <span th:text="#{lobby.language}" th:remove="tag">{Your language}</span>:
-        <span th:text="${language.name}" th:remove="tag">{whatever locale is selected}</span>
+
+    <div class="row">
+        <div class="col">
+            <br />
+        </div>
     </div>
-    <br />
-    <div>
-        <span th:text="#{general.placeholder}" th:remove="tag">{Under construction}</span>
-    </div>
+
+    <div th:include="fragments/footer :: footer"></div>
 </div>
+<script th:include="fragments/bootstrap :: js" th:remove="tag"></script>
 </body>
 </html>
