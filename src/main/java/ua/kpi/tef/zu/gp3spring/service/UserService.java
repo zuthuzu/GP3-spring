@@ -73,12 +73,14 @@ public class UserService implements UserDetailsService {
 				log.info(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
 				registrationException.setDuplicate(true);
 			} else {
-				e.printStackTrace();
+				//e.printStackTrace();
+				log.error("Couldn't save a new user", e);
 			}
 			throw registrationException;
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			//e.printStackTrace();
+			log.error("Couldn't save a new user", e);
 			throw new RegistrationException(e);
 		}
 	}

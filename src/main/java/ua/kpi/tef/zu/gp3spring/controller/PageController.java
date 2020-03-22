@@ -19,13 +19,18 @@ import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import ua.kpi.tef.zu.gp3spring.dto.LanguageDTO;
+import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.dto.UserDTO;
+import ua.kpi.tef.zu.gp3spring.entity.ItemCategory;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 import ua.kpi.tef.zu.gp3spring.entity.User;
+import ua.kpi.tef.zu.gp3spring.service.OrderService;
 import ua.kpi.tef.zu.gp3spring.service.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * Created by Anton Domin on 2020-03-04
@@ -35,11 +40,16 @@ import java.util.Locale;
 public class PageController implements WebMvcConfigurer {
 
 	private LanguageDTO languageSwitcher = new LanguageDTO();
+	private ResourceBundle bundle;
+	private final String BUNDLE_NAME = "messages";
+
 	private final UserService userService;
+	private final OrderService orderService;
 
 	@Autowired
-	public PageController(UserService userService) {
+	public PageController(UserService userService, OrderService orderService) {
 		this.userService = userService;
+		this.orderService = orderService;
 	}
 
 	@Bean
@@ -69,7 +79,7 @@ public class PageController implements WebMvcConfigurer {
 
 		//if we can get user auth from SecurityContextHolder, then he's already logged in, and doesn't need to be here
 		if (!SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser")) {
-			return lobbyPage(model);
+			return lobbyPage(model, null, null);
 		}
 
 		insertLanguagesIntoModel(model);
@@ -81,6 +91,7 @@ public class PageController implements WebMvcConfigurer {
 		return "index.html";
 	}
 
+	//After log in: determines which home page to call for each user type
 	@RequestMapping("/success")
 	public RedirectView localRedirect() {
 		RedirectView redirectView = new RedirectView();
@@ -107,11 +118,14 @@ public class PageController implements WebMvcConfigurer {
 	}
 
 	@RequestMapping("/lobby")
-	public String lobbyPage(Model model) {
+	public String lobbyPage(Model model,
+							@RequestParam(value = "error", required = false) String error,
+							@RequestParam(value = "order", required = false) String order) {
 		insertLanguagesIntoModel(model);
 
 		model.addAttribute("user", getCurrentUser());
-		model.addAttribute("error", false);
+		model.addAttribute("error", error != null);
+		model.addAttribute("order", order != null);
 		return "lobby.html";
 	}
 
@@ -173,6 +187,66 @@ public class PageController implements WebMvcConfigurer {
 
 		redirectView.setUrl("/?reg");
 		return redirectView;
+	}
+
+	@RequestMapping("/order")
+	public String registerOrder(@ModelAttribute OrderDTO order,
+							   @RequestParam(value = "error", required = false) String error,
+							   Model model) {
+
+		insertLanguagesIntoModel(model);
+		model.addAttribute("user", getCurrentUser());
+
+		model.addAttribute("categories", getLocalCategories());
+
+		model.addAttribute("error", error != null);
+		model.addAttribute("newOrder", order == null ? new OrderDTO() : order);
+
+		return "order.html";
+	}
+
+	@RequestMapping("/neworder")
+	public RedirectView newOrder(@ModelAttribute OrderDTO modelOrder, RedirectAttributes redirectAttributes) {
+		log.info("Obtained new order credentials from front end: " + modelOrder);
+
+		RedirectView redirectView = new RedirectView();
+
+		int categoryIndex = getLocalCategories().indexOf(modelOrder.getCategory());
+		if (categoryIndex == -1) {
+			redirectAttributes.addFlashAttribute("newOrder", modelOrder);
+			redirectView.setUrl("/order?error");
+			return redirectView;
+		} else {
+			modelOrder.setActualCategory(ItemCategory.values()[categoryIndex]);
+		}
+
+		modelOrder.setAuthor(getCurrentUser().getLogin());
+		try {
+			orderService.saveNewOrder(modelOrder);
+		} catch (RegistrationException e) {
+			redirectAttributes.addFlashAttribute("newOrder", modelOrder);
+			redirectView.setUrl("/order?error");
+			return redirectView;
+		}
+
+		redirectView.setUrl("/lobby?order");
+		return redirectView;
+	}
+
+	private List<String> getLocalCategories() {
+		List<String> localCategories = new ArrayList<>();
+
+		bundle = ResourceBundle.getBundle(BUNDLE_NAME, LocaleContextHolder.getLocale());
+
+		for (ItemCategory cat : ItemCategory.values()) {
+			localCategories.add(getLocalizedText(cat.toString()));
+		}
+
+		return localCategories;
+	}
+
+	public String getLocalizedText(String property) {
+		return bundle.keySet().contains(property) ? bundle.getString(property) : property;
 	}
 
 	private void insertLanguagesIntoModel(Model model) {

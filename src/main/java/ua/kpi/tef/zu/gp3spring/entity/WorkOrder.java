@@ -23,13 +23,13 @@ public class WorkOrder {
 	@Column(name = "id", nullable = false)
 	private Long id;
 
-	@Column(nullable = false)
+	@Column
 	private String author;
 
-	@Column(nullable = false)
+	@Column
 	private String manager;
 
-	@Column(nullable = false)
+	@Column
 	private String master;
 
 	@Column(name = "status")

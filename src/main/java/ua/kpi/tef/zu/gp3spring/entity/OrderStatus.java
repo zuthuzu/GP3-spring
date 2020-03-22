@@ -4,11 +4,11 @@ package ua.kpi.tef.zu.gp3spring.entity;
  * Created by Anton Domin on 2020-03-14
  */
 public enum OrderStatus {
-	PENDING ("status.pending"),
-	WORKING ("status.working"),
-	READY("status.ready"),
-	ARCHIVED("status.archived"),
-	CANCELLED("status.cancelled");
+	PENDING ("order.status.pending"),
+	WORKING ("order.status.working"),
+	READY("order.status.ready"),
+	ARCHIVED("order.status.archived"),
+	CANCELLED("order.status.cancelled");
 
 	private String value;
 

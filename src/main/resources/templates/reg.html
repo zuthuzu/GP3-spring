@@ -26,8 +26,8 @@
 
     <div class="row bg-light">
         <div class="col">
-            <h1 th:text="#{reg.welcome}">{Welcome header}</h1>
-            <h3 th:text="#{reg.header}">{Fill in those fields}</h3>
+            <h3 th:text="#{reg.welcome}">{Welcome header}</h3>
+            <span th:text="#{reg.header}">{Fill in those fields}</span>
             <div>
                 <form id="newUser" name="newUser" action="#" th:action="@{/newuser}" th:object="${newUser}" method="post">
                     <div class="form-group">
