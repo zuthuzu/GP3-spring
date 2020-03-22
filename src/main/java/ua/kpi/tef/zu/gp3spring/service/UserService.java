@@ -88,7 +88,7 @@ public class UserService implements UserDetailsService {
 				.name(user.getName())
 				.login(user.getLogin())
 				.phone(cleanPhoneNumber(user.getPhone()))
-				.email(user.getEmail())
+				.email(user.getEmail().isEmpty() ? user.getLogin() + "@null" : user.getEmail()) //a makeshift placeholder
 				.password(localEncoder.encode(user.getPassword()))
 				.role(user.getRole() == null ? RoleType.ROLE_USER : user.getRole())
 				.accountNonExpired(true)

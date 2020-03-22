@@ -16,26 +16,25 @@ import javax.persistence.*;
 @ToString
 
 @Entity
-@Table(name = "users",
-		uniqueConstraints = {@UniqueConstraint(columnNames = {"login", "phone", "email"})})
+@Table(name = "users")
 public class User {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	@Column(name = "id", nullable = false)
 	private Long id;
 
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	private String login;
 
 	@Column(nullable = false)
 	private String name;
 
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	private String phone;
 
 	//email is optional, but if it's entered, then it should be unique.
 	//it's a bit of a grey area, but apparently MySQL unique constraint allows multiple nulls, which is what we need
-	@Column
+	@Column(unique = true)
 	private String email;
 
 	@Column(name = "role")

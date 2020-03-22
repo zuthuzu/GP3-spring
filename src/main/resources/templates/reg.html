@@ -34,31 +34,31 @@
                         <label for="name">
                             <span th:text="#{reg.name}" th:remove="tag">{First name}</span>󠀠
                             <span id="nameYet">🗅</span>
-                            <span id="nameCheck" class="validation">✅</span>
-                            <span id="nameFail" class="validation">❌</span>
+                            <span id="nameCheck">✅</span>
+                            <span id="nameFail">❌</span>
                         </label>
                         <input class="form-control" type="text" id="name" name="name" th:field="*{name}" th:placeholder="#{reg.name}" required>
                     </div>
                     <div class="form-group">
                         <label for="login" th:text="#{login.login}">{User name}</label>
                         <span id="loginYet">🗅</span>
-                        <span id="loginCheck" class="validation">✅</span>
-                        <span id="loginFail" class="validation">❌</span>
+                        <span id="loginCheck">✅</span>
+                        <span id="loginFail">❌</span>
                         <input class="form-control" type="text" id="login" name="login" th:field="*{login}" th:placeholder="#{login.login}" required>
                     </div>
                     <div class="form-group">
                         <label for="phone" th:text="#{reg.phone}">{First name cyrillic}</label>
                         <span id="phoneYet">🗅</span>
-                        <span id="phoneCheck" class="validation">✅</span>
-                        <span id="phoneFail" class="validation">❌</span>
+                        <span id="phoneCheck">✅</span>
+                        <span id="phoneFail">❌</span>
                         <input class="form-control" type="text" id="phone" name="phone" th:field="*{phone}" th:placeholder="#{reg.phone}" required>
                     </div>
                     <div class="form-group">
                         <label for="email" th:text="#{reg.email}">{Email}</label>
                         <span id="emailYet">🗅</span>
-                        <span id="emailCheck" class="validation">✅</span>
-                        <span id="emailFail" class="validation">❌</span>
-                        <input class="form-control" type="email" id="email" name="email" th:field="*{email}" th:placeholder="#{reg.email}" required>
+                        <span id="emailCheck">✅</span>
+                        <span id="emailFail">❌</span>
+                        <input class="form-control" type="email" id="email" name="email" th:field="*{email}" th:placeholder="#{reg.email}">
                     </div>
                     <div class="form-group">
                         <label for="password" th:text="#{login.password}">{Password}</label>
@@ -83,37 +83,37 @@
 </div>
 
 <script type="text/javascript" th:inline="javascript">
-    var name = document.forms["newUser"]["name"];
-    var login = document.forms["newUser"]["login"];
-    var phone = document.forms["newUser"]["phone"];
-    var email = document.forms["newUser"]["email"];
-    var password = document.forms["newUser"]["password"];
+    var inputFieldName = document.forms["newUser"]["name"];
+    var inputFieldLogin = document.forms["newUser"]["login"];
+    var inputFieldPhone = document.forms["newUser"]["phone"];
+    var inputFieldEmail = document.forms["newUser"]["email"];
+    var inputFieldPassword = document.forms["newUser"]["password"];
 
     var nameRegex = [[${nameRegex}]];
     var loginRegex = [[${loginRegex}]];
     var phoneRegex = [[${phoneRegex}]];
 
-    name.addEventListener("blur", function () {
-        checkField(name, nameRegex)
+    inputFieldName.addEventListener("blur", function () {
+        checkField(inputFieldName, nameRegex)
     }, false)
 
-    login.addEventListener("blur", function () {
-        checkField(login, loginRegex)
+    inputFieldLogin.addEventListener("blur", function () {
+        checkField(inputFieldLogin, loginRegex)
     }, false)
 
-    phone.addEventListener("blur", function () {
-        checkField(phone, phoneRegex)
+    inputFieldPhone.addEventListener("blur", function () {
+        checkField(inputFieldPhone, phoneRegex)
     }, false)
 
-    email.addEventListener("blur", function () {
-        checkEmail(email)
+    inputFieldEmail.addEventListener("blur", function () {
+        checkEmail(inputFieldEmail)
     }, false)
 
     function checkFields(){
-        checkField(name, nameRegex);
-        checkField(login, loginRegex);
-        checkField(phone, phoneRegex);
-        checkEmail(email);
+        checkField(inputFieldName, nameRegex);
+        checkField(inputFieldLogin, loginRegex);
+        checkField(inputFieldPhone, phoneRegex);
+        checkEmail(inputFieldEmail);
     }
 
     function checkField(field, constraint) {
@@ -131,7 +131,7 @@
         checkmark = document.getElementById(field.name + "Check");
         failmark = document.getElementById(field.name + "Fail");
 
-        if (field.value.length === 0) {
+        if (field.value != undefined && field.value.length == 0) {
             yetmark.style.display = "inline";
             checkmark.style.display = "none";
             failmark.style.display = "none";

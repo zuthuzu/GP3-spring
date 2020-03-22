@@ -185,9 +185,10 @@ public class PageController implements WebMvcConfigurer {
 
 	private boolean verifyUserFields(User user) {
 		return  user.getName().matches(RegistrationValidation.NAME_REGEX) &&
-				user.getEmail().matches(RegistrationValidation.EMAIL_REGEX) &&
+				user.getLogin().matches(RegistrationValidation.LOGIN_REGEX) &&
 				user.getPhone().matches(RegistrationValidation.PHONE_REGEX) &&
-				user.getLogin().matches(RegistrationValidation.LOGIN_REGEX);
+				(user.getEmail().isEmpty() || user.getEmail().matches(RegistrationValidation.EMAIL_REGEX));
+
 	}
 
 	private User getCurrentUser() {

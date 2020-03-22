@@ -20,21 +20,27 @@
     <div class="row bg-light">
         <div class="col">
             <h3 th:text="#{users.header} + ':'">{Here goes user table}</h3>
-            <table>
-                <tr th:each="user : ${users}">
-                    <td class="w-30">
-                        👉 <span th:text="${user.name}" th:remove="tag">{User name}</span>
-                        <br /><br />
-                    </td>
-                    <td class="w-30">
-                        <span th:text="${user.phone}" th:remove="tag">{Phone}</span>
-                        <br /><br />
-                    </td>
-                    <td class="w-30">
-                        <span th:text="${user.role}" th:remove="tag">{Role}</span>
-                        <br /><br />
-                    </td>
-                </tr>
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th th:text="#{users.name}">{Self-reference}</th>
+                        <th th:text="#{users.phone}">{Phone}</th>
+                        <th th:text="#{users.role}">{Role}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="user : ${users}">
+                        <td>
+                            👉 <span th:text="${user.name}" th:remove="tag">{User name}</span>
+                        </td>
+                        <td>
+                            <span th:text="${user.phone}" th:remove="tag">{Phone}</span>
+                        </td>
+                        <td>
+                            <span th:text="${user.role}" th:remove="tag">{Role}</span>
+                        </td>
+                    </tr>
+                </tbody>
             </table>
         </div>
     </div>
