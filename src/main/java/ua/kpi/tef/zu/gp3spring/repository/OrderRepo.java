@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ua.kpi.tef.zu.gp3spring.entity.WorkOrder;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -11,9 +12,11 @@ import java.util.Optional;
  */
 @Repository
 public interface OrderRepo extends JpaRepository<WorkOrder, Long> {
-	Optional<WorkOrder> findByAuthor(String author);
+	Optional<WorkOrder> findById(long id);
 
-	Optional<WorkOrder> findByManager(String manager);
+	List<WorkOrder> findByAuthor(String author);
 
-	Optional<WorkOrder> findByMaster(String master);
+	List<WorkOrder> findByManager(String manager);
+
+	List<WorkOrder> findByMaster(String master);
 }

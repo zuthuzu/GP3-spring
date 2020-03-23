@@ -3,6 +3,7 @@ package ua.kpi.tef.zu.gp3spring.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 
 /**
  * Created by Anton Domin on 2020-03-14
@@ -17,11 +18,15 @@ import javax.persistence.*;
 
 @Entity
 @Table(name = "orders")
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
 public class WorkOrder {
 	@Id
 	@GeneratedValue(strategy = GenerationType.SEQUENCE)
 	@Column(name = "id", nullable = false)
 	private Long id;
+
+	@Column(name = "creation_date", nullable = false)
+	private LocalDate creationDate;
 
 	@Column
 	private String author;

@@ -28,6 +28,7 @@
         <div class="col">
             <h3 th:text="#{reg.welcome}">{Welcome header}</h3>
             <span th:text="#{reg.header}">{Fill in those fields}</span>
+            <br /><br />
             <div>
                 <form id="newUser" name="newUser" action="#" th:action="@{/newuser}" th:object="${newUser}" method="post">
                     <div class="form-group">

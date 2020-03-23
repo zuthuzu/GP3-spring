@@ -14,6 +14,12 @@
     <div class="row">
         <div class="col">
             <br />
+            <div class="alert alert-danger" role="alert" th:if="${error}">
+                <span th:text="#{users.error}">{User manipulation error}</span>
+            </div>
+            <div class="alert alert-success" role="alert" th:if="${success}">
+                <span th:text="#{users.success}">{User manipulation success}</span>
+            </div>
         </div>
     </div>
 
@@ -26,6 +32,7 @@
                         <th th:text="#{users.name}">{Self-reference}</th>
                         <th th:text="#{users.phone}">{Phone}</th>
                         <th th:text="#{users.role}">{Role}</th>
+                        <th th:text="#{users.set.header}">{Set role}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -38,6 +45,12 @@
                         </td>
                         <td>
                             <span th:text="${user.role}" th:remove="tag">{Role}</span>
+                        </td>
+                        <td>
+                            <a th:href="'/setrole?login=' + ${user.login} + '&role=ROLE_ADMIN'" th:title="#{users.set.admin}">💡</a>
+                            <a th:href="'/setrole?login=' + ${user.login} + '&role=ROLE_MANAGER'" th:title="#{users.set.manager}">‍💻</a>
+                            <a th:href="'/setrole?login=' + ${user.login} + '&role=ROLE_MASTER'" th:title="#{users.set.master}">🛠️</a>
+                            <a th:href="'/setrole?login=' + ${user.login} + '&role=ROLE_USER'" th:title="#{users.set.user}">👤</a>
                         </td>
                     </tr>
                 </tbody>

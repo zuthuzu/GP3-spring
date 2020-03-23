@@ -27,9 +27,37 @@
         <div class="col">
             <h3 th:text="#{lobby.welcome}">{Header}</h3>
 
-            <a href="/order" th:text="#{lobby.order.place}">{New order}</a>
+            📥 <a href="/order" th:text="#{lobby.order.place}">{New order}</a>
 
             <br /><br />
+        </div>
+    </div>
+
+    <div class="row bg-light">
+        <div class="col">
+            <h3 th:text="#{lobby.orders} + ':'">{Here goes orders table}</h3>
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th th:text="#{order.creation_date}">{Self-reference}</th>
+                    <th th:text="#{order.item}">{Phone}</th>
+                    <th th:text="#{order.status}">{Role}</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${orders}" th:onclick="|window.location.href='/details?id=${order.id}'|">
+                    <td>
+                        <span th:text="${order.creationDate}" th:remove="tag">{Creation date}</span>
+                    </td>
+                    <td>
+                        <span th:text="${order.item}" th:remove="tag">{Item}</span>
+                    </td>
+                    <td>
+                        <span th:text="${order.status}" th:remove="tag">{Status}</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 

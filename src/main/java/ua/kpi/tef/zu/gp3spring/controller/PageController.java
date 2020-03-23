@@ -27,6 +27,8 @@ import ua.kpi.tef.zu.gp3spring.entity.User;
 import ua.kpi.tef.zu.gp3spring.service.OrderService;
 import ua.kpi.tef.zu.gp3spring.service.UserService;
 
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -41,7 +43,7 @@ public class PageController implements WebMvcConfigurer {
 
 	private LanguageDTO languageSwitcher = new LanguageDTO();
 	private ResourceBundle bundle;
-	private final String BUNDLE_NAME = "messages";
+	private final static String BUNDLE_NAME = "messages";
 
 	private final UserService userService;
 	private final OrderService orderService;
@@ -97,21 +99,10 @@ public class PageController implements WebMvcConfigurer {
 		RedirectView redirectView = new RedirectView();
 
 		User currentUser = getCurrentUser();
-		switch (currentUser.getRole()) {
-			case ROLE_ADMIN:
-				redirectView.setUrl("/users");
-				break;
-			case ROLE_MANAGER:
-				redirectView.setUrl("/manage");
-				break;
-			case ROLE_MASTER:
-				redirectView.setUrl("/work");
-				break;
-			case ROLE_USER:
-				redirectView.setUrl("/lobby");
-				break;
-			default:
-				redirectView.setUrl("/error");
+		if (currentUser.getRole() == RoleType.ROLE_ADMIN) {
+			redirectView.setUrl("/users");
+		} else {
+			redirectView.setUrl("/lobby");
 		}
 
 		return redirectView;
@@ -126,24 +117,50 @@ public class PageController implements WebMvcConfigurer {
 		model.addAttribute("user", getCurrentUser());
 		model.addAttribute("error", error != null);
 		model.addAttribute("order", order != null);
+
+		model.addAttribute("orders", getOrders());
+
 		return "lobby.html";
 	}
 
 	@RequestMapping("/users")
-	public String usersPage(Model model) {
+	public String usersPage(Model model,
+							@RequestParam(value = "error", required = false) String error,
+							@RequestParam(value = "success", required = false) String success) {
 		insertLanguagesIntoModel(model);
 
 		User currentUser = getCurrentUser();
 		model.addAttribute("user", currentUser);
 
-		//TODO full role split doublecheck
 		if (currentUser.getRole() == RoleType.ROLE_ADMIN) {
 			model.addAttribute("users", getAllUsers());
+			model.addAttribute("error", error != null);
+			model.addAttribute("success", success != null);
 			return "users.html";
 		} else {
-			model.addAttribute("error", true);
-			return "lobby.html";
+			return lobbyPage(model, "error", null);
 		}
+	}
+
+	@RequestMapping("/setrole")
+	public RedirectView setRole(Model model,
+								@RequestParam(value = "login", required = false) String login,
+								@RequestParam(value = "role", required = false) String role) {
+
+		RedirectView redirectView = new RedirectView();
+
+		if (login == null || role == null ) {
+			redirectView.setUrl("/users?error");
+			return redirectView;
+		}
+
+		log.info("Admin has initiated a role change: user " + login + " to role " + role);
+
+		boolean howItWent = userService.updateRole(login, role);
+
+
+		redirectView.setUrl("/users?" + (howItWent ? "success" : "error"));
+		return redirectView;
 	}
 
 	@RequestMapping("/reg")
@@ -202,7 +219,7 @@ public class PageController implements WebMvcConfigurer {
 		model.addAttribute("error", error != null);
 		model.addAttribute("newOrder", order == null ? new OrderDTO() : order);
 
-		return "order.html";
+		return "order-new.html";
 	}
 
 	@RequestMapping("/neworder")
@@ -233,9 +250,34 @@ public class PageController implements WebMvcConfigurer {
 		return redirectView;
 	}
 
+	@RequestMapping("/details")
+	public String viewOrder(Model model,
+							@RequestParam(value = "id", required = false) String id) {
+
+		if (id == null) {
+			return lobbyPage(model, "error", null);
+		}
+
+		OrderDTO order;
+
+		try {
+			order = orderService.getOrderById(id);
+		} catch (IllegalArgumentException e) {
+			log.error(e.getMessage());
+			return lobbyPage(model, "error", null);
+		}
+
+		insertLanguagesIntoModel(model);
+		model.addAttribute("user", getCurrentUser());
+
+		setLocalFields(order);
+		model.addAttribute("order", order);
+
+		return "order-details.html";
+	}
+
 	private List<String> getLocalCategories() {
 		List<String> localCategories = new ArrayList<>();
-
 		bundle = ResourceBundle.getBundle(BUNDLE_NAME, LocaleContextHolder.getLocale());
 
 		for (ItemCategory cat : ItemCategory.values()) {
@@ -245,13 +287,7 @@ public class PageController implements WebMvcConfigurer {
 		return localCategories;
 	}
 
-	public String getLocalizedText(String property) {
-		return bundle.keySet().contains(property) ? bundle.getString(property) : property;
-	}
-
 	private void insertLanguagesIntoModel(Model model) {
-		//our web page can be reloaded via JS without form submitting data into languageSwitcher
-		//and locale might change in the meantime. gotta keep it actual for internal purposes
 		languageSwitcher.setChoice(LocaleContextHolder.getLocale().toString());
 		model.addAttribute("language", languageSwitcher);
 		model.addAttribute("supported", languageSwitcher.getSupportedLanguages());
@@ -280,6 +316,34 @@ public class PageController implements WebMvcConfigurer {
 
 	private List<User> getAllUsers() {
 		return userService.getAllUsers().getUsers();
+	}
+
+	private List<OrderDTO> getOrders() {
+		List<OrderDTO> orders;
+		User user = getCurrentUser();
+
+		if (user.getRole() == RoleType.ROLE_MASTER) {
+			orders = orderService.getOrdersByMaster(user.getLogin());
+		} else if (user.getRole() == RoleType.ROLE_MANAGER) {
+			orders = orderService.getOrdersByManager(user.getLogin());
+		} else {
+			orders = orderService.getOrdersByAuthor(user.getLogin());
+		}
+
+		orders.forEach(this::setLocalFields);
+		return orders;
+	}
+
+	private void setLocalFields(OrderDTO order) {
+		bundle = ResourceBundle.getBundle(BUNDLE_NAME, LocaleContextHolder.getLocale());
+		DateTimeFormatter dtf = DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(LocaleContextHolder.getLocale());
+		order.setCreationDate(order.getActualCreationDate().format(dtf));
+		order.setCategory(getLocalizedText(order.getActualCategory().toString()));
+		order.setStatus(getLocalizedText(order.getActualStatus().toString()));
+	}
+
+	public String getLocalizedText(String property) {
+		return bundle.keySet().contains(property) ? bundle.getString(property) : property;
 	}
 }
 

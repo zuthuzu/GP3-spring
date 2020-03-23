@@ -18,6 +18,7 @@ import ua.kpi.tef.zu.gp3spring.repository.UserRepo;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
+import java.util.Optional;
 
 /**
  * Created by Anton Domin on 2020-03-05
@@ -70,7 +71,7 @@ public class UserService implements UserDetailsService {
 
 			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
 				//most likely, either login or email aren't unique
-				log.info(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
+				log.error(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
 				registrationException.setDuplicate(true);
 			} else {
 				//e.printStackTrace();
@@ -83,6 +84,41 @@ public class UserService implements UserDetailsService {
 			log.error("Couldn't save a new user", e);
 			throw new RegistrationException(e);
 		}
+	}
+
+	public boolean updateRole(String login, String role) {
+		if (login.equals("admin")) {
+			return false;
+		}
+
+		RoleType actualRole;
+		try {
+			actualRole = RoleType.valueOf(role);
+		} catch (IllegalArgumentException e) {
+			return false;
+		}
+
+		Optional<User> maybeUser = userRepo.findByLogin(login);
+		if (!maybeUser.isPresent()) {
+			return false;
+		}
+		User user = maybeUser.get();
+
+		if (user.getRole() == actualRole) {
+			return true;
+		}
+
+		user.setRole(actualRole);
+
+		try {
+			userRepo.save(user);
+			log.info("User role updated successfully. User " + user.getLogin() + " is now " + user.getRole());
+		} catch (Exception e) {
+			log.error("Couldn't update user role", e);
+			return false;
+		}
+
+		return true;
 	}
 
 	private User getUserWithPermissions(User user) {
