@@ -66,6 +66,7 @@ public class UserService implements UserDetailsService {
 	public void saveNewUser(User user) throws RegistrationException {
 		try {
 			userRepo.save(getUserWithPermissions(user));
+			log.info("New user created: " + user);
 		} catch (DataIntegrityViolationException e) {
 			RegistrationException registrationException = new RegistrationException(e);
 

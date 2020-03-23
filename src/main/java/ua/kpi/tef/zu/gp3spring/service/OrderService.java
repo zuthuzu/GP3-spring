@@ -30,6 +30,7 @@ public class OrderService {
 	public void saveNewOrder(OrderDTO order) throws RegistrationException {
 		try {
 			orderRepo.save(getPreparedOrder(order));
+			log.info("New order created: " + order);
 		} catch (Exception e) {
 			log.error("Couldn't save a new order", e);
 			throw new RegistrationException(e);
