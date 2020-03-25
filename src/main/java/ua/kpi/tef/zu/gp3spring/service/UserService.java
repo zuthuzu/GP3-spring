@@ -154,4 +154,14 @@ public class UserService implements UserDetailsService {
 		return new UserDTO(userRepo.findByLogin(username).orElseThrow(() ->
 				new UsernameNotFoundException("login " + username + " not found.")));
 	}
+
+	public String getUsernameByLogin(String login) {
+		try {
+			return (login != null && !login.isEmpty()) ?
+					loadUserByUsername(login).toString() : "";
+		} catch (UsernameNotFoundException e) {
+			log.error(e.getMessage());
+			return "";
+		}
+	}
 }

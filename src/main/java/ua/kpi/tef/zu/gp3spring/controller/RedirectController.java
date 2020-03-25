@@ -123,6 +123,17 @@ public class RedirectController {
 		return redirectView;
 	}
 
+	@RequestMapping("/updateorder")
+	public RedirectView updateOrder(@ModelAttribute OrderDTO modelOrder, RedirectAttributes redirectAttributes) {
+		log.info("Order update request from front end: " + modelOrder);
+
+
+
+		RedirectView redirectView = new RedirectView();
+		redirectView.setUrl("/lobby?order");
+		return redirectView;
+	}
+
 	private boolean verifyUserFields(User user) {
 		return  user.getName().matches(RegistrationValidation.NAME_REGEX) &&
 				user.getLogin().matches(RegistrationValidation.LOGIN_REGEX) &&

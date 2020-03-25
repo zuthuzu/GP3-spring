@@ -2,17 +2,17 @@ package ua.kpi.tef.zu.gp3spring.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import ua.kpi.tef.zu.gp3spring.controller.RegistrationException;
 import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
-import ua.kpi.tef.zu.gp3spring.entity.OrderStatus;
+import ua.kpi.tef.zu.gp3spring.entity.states.OrderStatus;
 import ua.kpi.tef.zu.gp3spring.entity.WorkOrder;
+import ua.kpi.tef.zu.gp3spring.entity.states.StateFactory;
 import ua.kpi.tef.zu.gp3spring.repository.OrderRepo;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Created by Anton Domin on 2020-03-22
@@ -21,6 +21,9 @@ import java.util.Optional;
 @Service
 public class OrderService {
 	private OrderRepo orderRepo;
+
+	@Autowired
+	private UserService userService;
 
 	@Autowired
 	public OrderService(OrderRepo orderRepository) {
@@ -72,6 +75,16 @@ public class OrderService {
 		return wrapWorkCollectionInDTO(orderRepo.findByAuthor(login));
 	}
 
+	public List<OrderDTO> getActiveOrders() {
+		List<OrderStatus> filter = Arrays.asList(OrderStatus.PENDING, OrderStatus.WORKING, OrderStatus.READY);
+		return wrapWorkCollectionInDTO(orderRepo.findByStatusIn(filter));
+	}
+
+	public List<OrderDTO> getArchivedOrders() {
+		List<OrderStatus> filter = Arrays.asList(OrderStatus.ARCHIVED, OrderStatus.CANCELLED);
+		return wrapWorkCollectionInDTO(orderRepo.findByStatusIn(filter));
+	}
+
 	private List<OrderDTO> wrapWorkCollectionInDTO(List<WorkOrder> entities) {
 		List<OrderDTO> result = new ArrayList<>();
 		for (WorkOrder order : entities) {
@@ -81,12 +94,15 @@ public class OrderService {
 	}
 
 	private OrderDTO wrapOrderInDTO(WorkOrder order) {
-		return OrderDTO.builder()
+		OrderDTO result = OrderDTO.builder()
 				.id(order.getId())
 				.actualCreationDate(order.getCreationDate())
-				.author(order.getAuthor())
-				.manager(order.getManager())
-				.master(order.getMaster())
+				.author(userService.getUsernameByLogin(order.getAuthor()))
+				.authorLogin(order.getAuthor())
+				.manager(userService.getUsernameByLogin(order.getManager()))
+				.managerLogin(order.getManager())
+				.master(userService.getUsernameByLogin(order.getMaster()))
+				.masterLogin(order.getMaster())
 				.actualCategory(order.getCategory())
 				.item(order.getItem())
 				.complaint(order.getComplaint())
@@ -95,5 +111,8 @@ public class OrderService {
 				.managerComment(order.getManagerComment())
 				.masterComment(order.getMasterComment())
 				.build();
+
+		result.setLiveState(StateFactory.getState(result, result.getActualStatus()));
+		return result;
 	}
 }

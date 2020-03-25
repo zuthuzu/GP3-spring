@@ -20,12 +20,23 @@
     <div class="row bg-light">
         <div class="col">
             <h3 th:text="#{order.details.welcome}">{Header}</h3>
-            <br /><br />
             <div>
-                <form id="oder" name="order" action="#" th:action="@{/updateorder}" th:object="${order}" method="post">
+                <form id="updateOrder" name="updateOrder" action="#" th:action="@{/updateorder}" th:object="${updateOrder}" method="post">
                     <div class="form-group">
                         <label for="date" th:text="#{order.creation_date}">{Category}</label>
                         <input class="form-control" id="date" name="date" th:field="*{creationDate}" th:placeholder="#{order.creation_date}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="date" th:text="#{order.author}">{Author}</label>
+                        <input class="form-control" id="author" name="author" th:field="*{author}" th:placeholder="#{order.none}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="date" th:text="#{order.manager}">{Manager}</label>
+                        <input class="form-control" id="manager" name="manager" th:field="*{manager}" th:placeholder="#{order.none}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="date" th:text="#{order.master}">{Master}</label>
+                        <input class="form-control" id="master" name="master" th:field="*{master}" th:placeholder="#{order.none}" disabled>
                     </div>
                     <div class="form-group">
                         <label for="category" th:text="#{order.category}">{Category}</label>
@@ -39,12 +50,30 @@
                     </div>
                     <div class="form-group">
                         <label for="complaint" th:text="#{order.complaint}">{What's up with it}</label>
-                        <textarea class="form-control" id="complaint" name="complaint" th:field="*{complaint}" th:placeholder="#{order.complaint}" disabled>
+                        <textarea class="form-control" id="complaint" name="complaint" th:field="*{complaint}" th:placeholder="#{order.complaint}" rows="2" disabled>
                         </textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="status" th:text="#{order.price}">{Price}</label>
+                        <input class="form-control" id="price" name="price" th:field="*{price}" th:placeholder="#{order.none}" type="number" min="0" disabled>
                     </div>
                     <div class="form-group">
                         <label for="status" th:text="#{order.status}">{Status}</label>
                         <input class="form-control" id="status" name="status" th:field="*{status}" th:placeholder="#{order.status}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label for="masterComment" th:text="#{order.master_comment}">{What's up with it}</label>
+                        <textarea class="form-control" id="masterComment" name="masterComment" th:field="*{masterComment}" rows="2" disabled>
+                        </textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="managerComment" th:text="#{order.manager_comment}">{What's up with it}</label>
+                        <textarea class="form-control" id="managerComment" name="managerComment" th:field="*{managerComment}" rows="2" disabled>
+                        </textarea>
+                    </div>
+                    <div>
+                        <button class="btn btn-secondary" type="submit" name="action" value="proceed" th:text="${submit}">{Proceed according to state}</button>
+                        <button class="btn btn-secondary" type="submit" name="action" value="cancel" th:text="#{order.action.cancel}" th:if="${cancel}">{Cancel the order}</button>
                     </div>
                 </form>
             </div>

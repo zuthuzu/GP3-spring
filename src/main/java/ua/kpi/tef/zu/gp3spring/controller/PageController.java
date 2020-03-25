@@ -19,6 +19,7 @@ import ua.kpi.tef.zu.gp3spring.dto.LanguageDTO;
 import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 import ua.kpi.tef.zu.gp3spring.entity.User;
+import ua.kpi.tef.zu.gp3spring.entity.states.AbstractState;
 import ua.kpi.tef.zu.gp3spring.service.OrderService;
 import ua.kpi.tef.zu.gp3spring.service.UserService;
 
@@ -176,7 +177,11 @@ public class PageController implements WebMvcConfigurer {
 		model.addAttribute("user", utility.getCurrentUser());
 
 		setLocalFields(order);
-		model.addAttribute("order", order);
+		model.addAttribute("updateOrder", order);
+
+		AbstractState state = order.getLiveState();
+		model.addAttribute("submit", utility.getLocalizedText(state.getButtonText()));
+		model.addAttribute("cancel", state.isCancelable());
 
 		return "order-details.html";
 	}
@@ -200,7 +205,8 @@ public class PageController implements WebMvcConfigurer {
 		if (user.getRole() == RoleType.ROLE_MASTER) {
 			orders = orderService.getOrdersByMaster(user.getLogin());
 		} else if (user.getRole() == RoleType.ROLE_MANAGER) {
-			orders = orderService.getOrdersByManager(user.getLogin());
+			//orders = orderService.getOrdersByManager(user.getLogin());
+			orders = orderService.getActiveOrders();
 		} else {
 			orders = orderService.getOrdersByAuthor(user.getLogin());
 		}

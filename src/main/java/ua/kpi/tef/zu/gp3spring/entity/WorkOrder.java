@@ -1,6 +1,7 @@
 package ua.kpi.tef.zu.gp3spring.entity;
 
 import lombok.*;
+import ua.kpi.tef.zu.gp3spring.entity.states.OrderStatus;
 
 import javax.persistence.*;
 import java.time.LocalDate;

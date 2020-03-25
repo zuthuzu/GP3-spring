@@ -59,4 +59,9 @@ public class UserDTO implements UserDetails {
 	public boolean isEnabled() {
 		return user.isEnabled();
 	}
+
+	@Override
+	public String toString() {
+		return user.getName();
+	}
 }
