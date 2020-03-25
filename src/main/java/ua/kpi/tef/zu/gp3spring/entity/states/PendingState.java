@@ -16,7 +16,7 @@ public class PendingState extends AbstractState {
 
 		setRequiredRole(RoleType.ROLE_MANAGER);
 		setRequiredFields(Arrays.asList("price"));
-		setAvailableFields(Arrays.asList("status", "manager", "manager_comment", "price"));
+		setAvailableFields(Arrays.asList("category", "item", "status", "manager", "manager_comment", "price"));
 		setCancelable(true);
 		setPreCancelFields(Arrays.asList("manager_comment"));
 		setButtonText("order.action.accept");

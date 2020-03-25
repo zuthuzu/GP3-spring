@@ -22,6 +22,7 @@
             <h3 th:text="#{order.details.welcome}">{Header}</h3>
             <div>
                 <form id="updateOrder" name="updateOrder" action="#" th:action="@{/updateorder}" th:object="${updateOrder}" method="post">
+                    <input type="hidden" id="id" name="id" th:field="*{id}">
                     <div class="form-group">
                         <label for="date" th:text="#{order.creation_date}">{Category}</label>
                         <input class="form-control" id="date" name="date" th:field="*{creationDate}" th:placeholder="#{order.creation_date}" disabled>
@@ -40,35 +41,43 @@
                     </div>
                     <div class="form-group">
                         <label for="category" th:text="#{order.category}">{Category}</label>
-                        <input class="form-control" id="category" name="category" th:field="*{category}" th:placeholder="#{order.category}" disabled>
+                        <select class="form-control" type="text" id="category" name="category" th:field="*{category}"
+                                required th:disabled="!${#lists.contains(available, 'category')}">
+                            <option th:each="cat : ${categories}" th:text="${cat}" th:value="${cat}">{category}</option>
+                        </select>
                     </div>
                     <div class="form-group">
                         <label for="item">
                             <span th:text="#{order.item}" th:remove="tag">{Item name}</span>󠀠
                         </label>
-                        <input class="form-control" type="text" id="item" name="item" th:field="*{item}" th:placeholder="#{order.item}" disabled>
+                        <input class="form-control" type="text" id="item" name="item" th:field="*{item}" th:placeholder="#{order.item}"
+                               required th:disabled="!${#lists.contains(available, 'item')}">
                     </div>
                     <div class="form-group">
                         <label for="complaint" th:text="#{order.complaint}">{What's up with it}</label>
-                        <textarea class="form-control" id="complaint" name="complaint" th:field="*{complaint}" th:placeholder="#{order.complaint}" rows="2" disabled>
+                        <textarea class="form-control" id="complaint" name="complaint" th:field="*{complaint}" th:placeholder="#{order.complaint}" rows="2"
+                                  th:disabled="!${#lists.contains(available, 'complaint')}">
                         </textarea>
                     </div>
                     <div class="form-group">
                         <label for="status" th:text="#{order.price}">{Price}</label>
-                        <input class="form-control" id="price" name="price" th:field="*{price}" th:placeholder="#{order.none}" type="number" min="0" disabled>
+                        <input class="form-control" id="price" name="price" th:field="*{price}" th:placeholder="#{order.none}" type="number" min="0"
+                               required th:disabled="!${#lists.contains(available, 'price')}">
                     </div>
                     <div class="form-group">
                         <label for="status" th:text="#{order.status}">{Status}</label>
                         <input class="form-control" id="status" name="status" th:field="*{status}" th:placeholder="#{order.status}" disabled>
                     </div>
                     <div class="form-group">
-                        <label for="masterComment" th:text="#{order.master_comment}">{What's up with it}</label>
-                        <textarea class="form-control" id="masterComment" name="masterComment" th:field="*{masterComment}" rows="2" disabled>
+                        <label for="managerComment" th:text="#{order.manager_comment}">{What's up with it}</label>
+                        <textarea class="form-control" id="managerComment" name="managerComment" th:field="*{managerComment}" rows="2"
+                                  th:disabled="!${#lists.contains(available, 'manager_comment')}">
                         </textarea>
                     </div>
                     <div class="form-group">
-                        <label for="managerComment" th:text="#{order.manager_comment}">{What's up with it}</label>
-                        <textarea class="form-control" id="managerComment" name="managerComment" th:field="*{managerComment}" rows="2" disabled>
+                        <label for="masterComment" th:text="#{order.master_comment}">{What's up with it}</label>
+                        <textarea class="form-control" id="masterComment" name="masterComment" th:field="*{masterComment}" rows="2"
+                                  th:disabled="!${#lists.contains(available, 'master_comment')}">
                         </textarea>
                     </div>
                     <div>

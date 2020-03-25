@@ -179,7 +179,10 @@ public class PageController implements WebMvcConfigurer {
 		setLocalFields(order);
 		model.addAttribute("updateOrder", order);
 
+		model.addAttribute("categories", utility.getLocalCategories());
+
 		AbstractState state = order.getLiveState();
+		model.addAttribute("available", state.getAvailableFields());
 		model.addAttribute("submit", utility.getLocalizedText(state.getButtonText()));
 		model.addAttribute("cancel", state.isCancelable());
 
