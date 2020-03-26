@@ -10,25 +10,14 @@ import java.util.Arrays;
  */
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public class PendingState extends AbstractState {
-	public PendingState(OrderDTO order) {
-		super(order);
+	public PendingState() {
 		setNextState(OrderStatus.ACCEPTED);
 
 		setRequiredRole(RoleType.ROLE_MANAGER);
 		setRequiredFields(Arrays.asList("price"));
-		setAvailableFields(Arrays.asList("category", "item", "status", "manager", "manager_comment", "price"));
+		setAvailableFields(Arrays.asList("category", "item", "manager_comment", "price"));
 		setCancelable(true);
 		setPreCancelFields(Arrays.asList("manager_comment"));
 		setButtonText("order.action.accept");
-	}
-
-	@Override
-	public AbstractState proceed() {
-		return StateFactory.getState(getOrder(), getNextState());
-	}
-
-	@Override
-	public AbstractState cancel() {
-		return StateFactory.getState(getOrder(), OrderStatus.CANCELLED);
 	}
 }

@@ -14,22 +14,14 @@ import java.util.List;
 @Getter
 @Setter
 public abstract class AbstractState {
-	private OrderDTO order;
 	private OrderStatus nextState;
 
-	private RoleType requiredRole; //who can call proceed() from here onward
-	private List<String> requiredFields = new ArrayList<>(); //what he must fill before proceeding
-	private List<String> availableFields = new ArrayList<>(); //what he can change before proceeding
+	private RoleType requiredRole; //who can call initiate a change from this state to another
+	private List<String> requiredFields = new ArrayList<>(); //what he MUST fill before proceeding
+	private List<String> availableFields = new ArrayList<>(); //what he CAN change before proceeding
 
 	private boolean isCancelable;
-	private List<String> preCancelFields = new ArrayList<>(); //what he must fill before cancelling
+	private List<String> preCancelFields = new ArrayList<>(); //what he MUST fill before cancelling
 
 	private String buttonText;
-
-	public AbstractState(OrderDTO order) {
-		this.order = order;
-	}
-
-	public abstract AbstractState proceed();
-	public abstract AbstractState cancel();
 }

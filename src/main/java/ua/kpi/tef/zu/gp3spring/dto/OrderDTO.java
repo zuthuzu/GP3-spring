@@ -19,20 +19,20 @@ import java.time.LocalDate;
 @ToString
 public class OrderDTO {
 	private long id;
-	private String creationDate;
-	private LocalDate actualCreationDate;
+	private String creationDate; //representation in user's locale, refreshed at controller
+	private LocalDate actualCreationDate; //value from DB
 	private String author;
-	private String authorLogin;
+	private String authorLogin; //value from DB
 	private String manager;
-	private String managerLogin;
+	private String managerLogin; //value from DB
 	private String master;
-	private String masterLogin;
-	private String category;
-	private ItemCategory actualCategory;
+	private String masterLogin; //value from DB
+	private String category; //representation in user's locale, refreshed at controller
+	private ItemCategory actualCategory; //value from DB
 	private String item;
 	private String complaint;
-	private String status;
-	private OrderStatus actualStatus;
+	private String status; //representation in user's locale, refreshed at controller
+	private OrderStatus actualStatus; //value from DB
 	private AbstractState liveState;
 	private int price;
 	private String managerComment;

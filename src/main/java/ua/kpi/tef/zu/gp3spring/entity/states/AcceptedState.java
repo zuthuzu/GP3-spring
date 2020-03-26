@@ -10,25 +10,14 @@ import java.util.Arrays;
  */
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public class AcceptedState extends AbstractState {
-	public AcceptedState(OrderDTO order) {
-		super(order);
+	public AcceptedState() {
 		setNextState(OrderStatus.WORKING);
 
 		setRequiredRole(RoleType.ROLE_MASTER);
 		//setRequiredFields(); //no required fields at this state
-		setAvailableFields(Arrays.asList("status", "master", "master_comment"));
+		setAvailableFields(Arrays.asList("master_comment"));
 		setCancelable(true);
 		setPreCancelFields(Arrays.asList("manager_comment"));
 		setButtonText("order.action.take");
-	}
-
-	@Override
-	public AbstractState proceed() {
-		return StateFactory.getState(getOrder(), getNextState());
-	}
-
-	@Override
-	public AbstractState cancel() {
-		return StateFactory.getState(getOrder(), OrderStatus.CANCELLED);
 	}
 }

@@ -101,13 +101,10 @@ public class RedirectController {
 
 		RedirectView redirectView = new RedirectView();
 
-		int categoryIndex = utility.getLocalCategories().indexOf(modelOrder.getCategory());
-		if (categoryIndex == -1) {
+		if (!restoreCategoryFromLocalView(modelOrder)) {
 			redirectAttributes.addFlashAttribute("newOrder", modelOrder);
 			redirectView.setUrl("/order?error");
 			return redirectView;
-		} else {
-			modelOrder.setActualCategory(ItemCategory.values()[categoryIndex]);
 		}
 
 		modelOrder.setAuthor(utility.getCurrentUser().getLogin());
@@ -126,11 +123,14 @@ public class RedirectController {
 	@RequestMapping("/updateorder")
 	public RedirectView updateOrder(@ModelAttribute OrderDTO modelOrder, RedirectAttributes redirectAttributes) {
 		log.info("Order update request from front end: " + modelOrder);
-
-
-
 		RedirectView redirectView = new RedirectView();
-		redirectView.setUrl("/lobby?order");
+
+		if (!restoreCategoryFromLocalView(modelOrder)) {
+			redirectView.setUrl("lobby?orderfail");
+			return redirectView;
+		}
+
+		redirectView.setUrl(orderService.updateOrder(modelOrder, utility.getCurrentUser()) ? "/lobby?order" : "lobby?orderfail");
 		return redirectView;
 	}
 
@@ -140,5 +140,16 @@ public class RedirectController {
 				user.getPhone().matches(RegistrationValidation.PHONE_REGEX) &&
 				(user.getEmail().isEmpty() || user.getEmail().matches(RegistrationValidation.EMAIL_REGEX));
 
+	}
+
+	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
+	private boolean restoreCategoryFromLocalView(OrderDTO modelOrder) {
+		int categoryIndex = utility.getLocalCategories().indexOf(modelOrder.getCategory());
+		if (categoryIndex == -1) {
+			return false;
+		} else {
+			modelOrder.setActualCategory(ItemCategory.values()[categoryIndex]);
+			return true;
+		}
 	}
 }

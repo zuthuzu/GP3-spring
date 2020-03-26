@@ -75,7 +75,7 @@ public class PageController implements WebMvcConfigurer {
 
 		//if we can get user auth from SecurityContextHolder, then he's already logged in, and doesn't need to be here
 		if (!SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser")) {
-			return lobbyPage(model, null, null);
+			return lobbyPage(model, null, null, null);
 		}
 
 		insertLanguagesIntoModel(model);
@@ -89,11 +89,13 @@ public class PageController implements WebMvcConfigurer {
 
 	@RequestMapping("/lobby")
 	public String lobbyPage(Model model,
+							@RequestParam(value = "denied", required = false) String denied,
 							@RequestParam(value = "error", required = false) String error,
 							@RequestParam(value = "order", required = false) String order) {
 		insertLanguagesIntoModel(model);
 
 		model.addAttribute("user", utility.getCurrentUser());
+		model.addAttribute("denied", denied != null);
 		model.addAttribute("error", error != null);
 		model.addAttribute("order", order != null);
 
@@ -117,7 +119,7 @@ public class PageController implements WebMvcConfigurer {
 			model.addAttribute("success", success != null);
 			return "users.html";
 		} else {
-			return lobbyPage(model, "error", null);
+			return accessDeniedPage(model);
 		}
 	}
 
@@ -161,7 +163,7 @@ public class PageController implements WebMvcConfigurer {
 							@RequestParam(value = "id", required = false) String id) {
 
 		if (id == null) {
-			return lobbyPage(model, "error", null);
+			return accessDeniedPage(model);
 		}
 
 		OrderDTO order;
@@ -170,7 +172,7 @@ public class PageController implements WebMvcConfigurer {
 			order = orderService.getOrderById(id);
 		} catch (IllegalArgumentException e) {
 			log.error(e.getMessage());
-			return lobbyPage(model, "error", null);
+			return accessDeniedPage(model);
 		}
 
 		insertLanguagesIntoModel(model);
@@ -187,6 +189,10 @@ public class PageController implements WebMvcConfigurer {
 		model.addAttribute("cancel", state.isCancelable());
 
 		return "order-details.html";
+	}
+
+	private String accessDeniedPage(Model model) {
+		return lobbyPage(model, "denied", null, null);
 	}
 
 	private void insertLanguagesIntoModel(Model model) {
