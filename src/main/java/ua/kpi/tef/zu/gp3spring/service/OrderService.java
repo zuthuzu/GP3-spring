@@ -19,6 +19,7 @@ import java.util.*;
 /**
  * Created by Anton Domin on 2020-03-22
  */
+@SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 @Slf4j
 @Service
 public class OrderService {
@@ -35,50 +36,70 @@ public class OrderService {
 		this.orderRepo = orderRepository;
 	}
 
-	public OrderDTO getOrderById(String id) throws IllegalArgumentException {
-		long realID;
-		try {
-			realID = Long.parseLong(id);
-		} catch (NumberFormatException e) {
-			throw new IllegalArgumentException("Can't convert ID " + id + " to a number.");
+	/**
+	 * Returns so called "active orders", i.e. requiring primary attention from the user.
+	 * <ul>
+	 * <li>For masters it's orders they're working on (status.WORKING, master==themselves)
+	 * <li>For managers it's orders they have to deal with (PENDING with no manager or READY with manager==themselves)
+	 * <li>For users it's their orders that are still being repaired (any non-archived with author==themselves)
+	 * </ul>
+	 *
+	 * @param initiator user who initiated the request
+	 * @return list of the orders that satisfy the condition
+	 */
+	public List<OrderDTO> getActiveOrders(User initiator) {
+		List<OrderStatus> filter;
+		if (initiator.getRole() == RoleType.ROLE_MASTER) {
+			filter = Arrays.asList(OrderStatus.ACCEPTED, OrderStatus.WORKING);
+			return wrapWorkCollectionInDTO(orderRepo.findByMasterAndStatusIn(initiator.getLogin(), filter));
+
+		} else if (initiator.getRole() == RoleType.ROLE_MANAGER) {
+			filter = Arrays.asList(OrderStatus.PENDING);
+			List<WorkOrder> orders = orderRepo.findByStatusIn(filter);
+
+			filter = Arrays.asList(OrderStatus.READY);
+			orders.addAll(orderRepo.findByManagerAndStatusIn(initiator.getLogin(), filter));
+
+			return wrapWorkCollectionInDTO(orders);
+
+		} else {
+			filter = Arrays.asList(OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.WORKING, OrderStatus.READY);
+			return wrapWorkCollectionInDTO(orderRepo.findByAuthorAndStatusIn(initiator.getLogin(), filter));
 		}
-
-		WorkOrder order = orderRepo.findById(realID).orElseThrow(() -> new IllegalArgumentException("Can't find order with ID " + id));
-		return wrapOrderInDTO(order);
 	}
 
-	public List<OrderDTO> getOrdersByMaster(String login) {
-		return wrapWorkCollectionInDTO(orderRepo.findByMaster(login));
+	/**
+	 * Returns so called "secondary orders", i.e. orders that user should care about less.
+	 * <ul>
+	 * <li>For masters it's accepted orders that still haven't been taken (status.ACCEPTED)
+	 * <li>For managers it's their orders that are still being worked on (ACCEPTED or WORKING, manager==themselves)
+	 * <li>For users it's their long term history (archived and cancelled)
+	 * </ul>
+	 *
+	 * @param initiator user who initiated the request
+	 * @return list of the orders that satisfy the condition
+	 */
+	public List<OrderDTO> getSecondaryOrders(User initiator) {
+		List<OrderStatus> filter;
+		if (initiator.getRole() == RoleType.ROLE_MASTER) {
+			filter = Arrays.asList(OrderStatus.ACCEPTED);
+			return wrapWorkCollectionInDTO(orderRepo.findByStatusIn(filter));
+		} else if (initiator.getRole() == RoleType.ROLE_MANAGER) {
+			filter = Arrays.asList(OrderStatus.ACCEPTED, OrderStatus.WORKING);
+			return wrapWorkCollectionInDTO(orderRepo.findByManagerAndStatusIn(initiator.getLogin(), filter));
+		} else {
+			filter = Arrays.asList(OrderStatus.ARCHIVED, OrderStatus.CANCELLED);
+			return wrapWorkCollectionInDTO(orderRepo.findByAuthorAndStatusIn(initiator.getLogin(), filter));
+		}
 	}
 
-	public List<OrderDTO> getOrdersByManager(String login) {
-		return wrapWorkCollectionInDTO(orderRepo.findByManager(login));
-	}
-
-	public List<OrderDTO> getOrdersByAuthor(String login) {
-		return wrapWorkCollectionInDTO(orderRepo.findByAuthor(login));
-	}
-
-	public List<OrderDTO> getActiveOrders() {
-		List<OrderStatus> filter = Arrays.asList(OrderStatus.PENDING, OrderStatus.ACCEPTED, OrderStatus.WORKING, OrderStatus.READY);
-		return wrapWorkCollectionInDTO(orderRepo.findByStatusIn(filter));
-	}
-
-	public List<OrderDTO> getArchivedOrders() {
-		List<OrderStatus> filter = Arrays.asList(OrderStatus.ARCHIVED, OrderStatus.CANCELLED);
-		return wrapWorkCollectionInDTO(orderRepo.findByStatusIn(filter));
-	}
-
-	public void saveNewOrder(OrderDTO order) throws RegistrationException {
-		saveOrder(unwrapNewOrder(order));
-	}
-
-
-
-	/** Preparation and support for state change.<br />
+	/**
+	 * Primary logic that invokes the order state mechanism.<br />
+	 * Preparation and support for state change.<br />
 	 * Verifies data retrieved from front end before passing it to the primary logic.
+	 *
 	 * @param modelOrder order the way it arrived from frontend
-	 * @param initiator user who initiated the update
+	 * @param initiator  user who initiated the update
 	 * @return success of the operation
 	 */
 	public boolean updateOrder(OrderDTO modelOrder, User initiator) {
@@ -142,11 +163,12 @@ public class OrderService {
 		return true;
 	}
 
-	/** Primary logic that invokes the entire order state mechanism.<br />
-	 *  Carefully applies front end data onto DB data where it is necessitated by the current state.
-	 * @param dbOrder order the way it's currently present in DB
+	/**
+	 * Carefully applies front end data onto DB data where it is necessitated by the current state.
+	 *
+	 * @param dbOrder    order the way it's currently present in DB
 	 * @param modelOrder order the way it arrived from frontend
-	 * @param initiator user who initiated the update
+	 * @param initiator  user who initiated the update
 	 * @return an entity ready for updating into DB
 	 */
 	private WorkOrder assembleOrder(OrderDTO dbOrder, OrderDTO modelOrder, User initiator, boolean proceed) {
@@ -157,16 +179,35 @@ public class OrderService {
 				.id(dbOrder.getId())
 				.creationDate(dbOrder.getActualCreationDate())
 				.author(dbOrder.getAuthorLogin())
-				.manager(state.getRequiredRole() == RoleType.ROLE_MANAGER ? initiator.getLogin() : dbOrder.getManagerLogin())
-				.master(state.getRequiredRole() == RoleType.ROLE_MASTER ? initiator.getLogin() : dbOrder.getMasterLogin())
+				.manager((state.getRequiredRole() == RoleType.ROLE_MANAGER && isEmptyOrNull(dbOrder.getManagerLogin()))
+						? initiator.getLogin() : dbOrder.getManagerLogin()) //first authorised initiator gets recorded
+				.master((state.getRequiredRole() == RoleType.ROLE_MASTER && isEmptyOrNull(dbOrder.getMasterLogin()))
+						? initiator.getLogin() : dbOrder.getMasterLogin()) //first authorised initiator gets recorded
 				.status(proceed ? state.getNextState() : OrderStatus.CANCELLED)
-				.category(availableFields.contains("category") ? modelOrder.getActualCategory() : dbOrder.getActualCategory())
+				.category((availableFields.contains("category") && modelOrder.getActualCategory() != null)
+						? modelOrder.getActualCategory() : dbOrder.getActualCategory()) //this field doesn't get checked well enough previously
 				.item(availableFields.contains("item") ? modelOrder.getItem() : dbOrder.getItem())
 				.complaint(availableFields.contains("complaint") ? modelOrder.getComplaint() : dbOrder.getComplaint())
 				.price(availableFields.contains("price") ? modelOrder.getPrice() : dbOrder.getPrice())
 				.managerComment(availableFields.contains("manager_comment") ? modelOrder.getManagerComment() : dbOrder.getManagerComment())
 				.masterComment(availableFields.contains("master_comment") ? modelOrder.getMasterComment() : dbOrder.getMasterComment())
 				.build();
+	}
+
+	public OrderDTO getOrderById(String id) throws IllegalArgumentException {
+		long realID;
+		try {
+			realID = Long.parseLong(id);
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Can't convert ID " + id + " to a number.");
+		}
+
+		WorkOrder order = orderRepo.findById(realID).orElseThrow(() -> new IllegalArgumentException("Can't find order with ID " + id));
+		return wrapOrderInDTO(order);
+	}
+
+	public void saveNewOrder(OrderDTO order) throws RegistrationException {
+		saveOrder(unwrapNewOrder(order));
 	}
 
 	private void saveOrder(WorkOrder order) throws RegistrationException {
@@ -222,8 +263,10 @@ public class OrderService {
 				.build();
 	}
 
-	/** As far as I could tell, there's no native way to check for it in java.<br /><br />
-	 * Apache Commons has StringUtils.isEmpty(value), but I don't want to include it here.*/
+	/**
+	 * As far as I could tell, there's no native way to check for it in java.<br /><br />
+	 * Apache Commons has StringUtils.isEmpty(value), but I don't want to include it here.
+	 */
 	private boolean isEmptyOrNull(String value) {
 		return value == null || value.isEmpty();
 	}

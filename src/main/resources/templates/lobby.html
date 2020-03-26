@@ -38,7 +38,7 @@
 
     <div class="row bg-light">
         <div class="col">
-            <h3 th:text="#{lobby.orders} + ':'">{Primary orders table}</h3>
+            <h3 th:text="#{lobby.order.active} + ':'">{Active orders table}</h3>
             <table class="table table-hover">
                 <thead>
                 <tr>
@@ -48,7 +48,41 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="order : ${orders}" th:onclick="|window.location.href='/details?id=${order.id}'|">
+                <tr th:each="order : ${activeOrders}" th:onclick="|window.location.href='/details?id=${order.id}'|">
+                    <td>
+                        <span th:text="${order.creationDate}" th:remove="tag">{Creation date}</span>
+                    </td>
+                    <td>
+                        <span th:text="${order.item}" th:remove="tag">{Item}</span>
+                    </td>
+                    <td>
+                        <span th:text="${order.status}" th:remove="tag">{Status}</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <br />
+        </div>
+    </div>
+
+    <div class="row bg-light">
+        <div class="col">
+            <h3 th:text="#{lobby.order.secondary} + ':'">{Seconrady orders table}</h3>
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th th:text="#{order.creation_date}">{Self-reference}</th>
+                    <th th:text="#{order.item}">{Phone}</th>
+                    <th th:text="#{order.status}">{Role}</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="order : ${secondaryOrders}" th:onclick="|window.location.href='/details?id=${order.id}'|">
                     <td>
                         <span th:text="${order.creationDate}" th:remove="tag">{Creation date}</span>
                     </td>

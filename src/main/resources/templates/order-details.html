@@ -81,7 +81,7 @@
                         </textarea>
                     </div>
                     <div>
-                        <button class="btn btn-secondary" type="submit" name="action" value="proceed" th:text="${submit}">{Proceed according to state}</button>
+                        <button class="btn btn-secondary" type="submit" name="action" value="proceed" th:text="${submit}" th:disabled="${readonly}">{Proceed according to state}</button>
                         <button class="btn btn-secondary" type="submit" name="action" value="cancel" th:text="#{order.action.cancel}" th:if="${cancel}">{Cancel the order}</button>
                     </div>
                 </form>

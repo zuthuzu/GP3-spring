@@ -25,6 +25,7 @@ import ua.kpi.tef.zu.gp3spring.service.UserService;
 
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -90,16 +91,17 @@ public class PageController implements WebMvcConfigurer {
 	@RequestMapping("/lobby")
 	public String lobbyPage(Model model,
 							@RequestParam(value = "denied", required = false) String denied,
-							@RequestParam(value = "error", required = false) String error,
+							@RequestParam(value = "orderfail", required = false) String orderfail,
 							@RequestParam(value = "order", required = false) String order) {
 		insertLanguagesIntoModel(model);
 
 		model.addAttribute("user", utility.getCurrentUser());
 		model.addAttribute("denied", denied != null);
-		model.addAttribute("error", error != null);
+		model.addAttribute("orderfail", orderfail != null);
 		model.addAttribute("order", order != null);
 
-		model.addAttribute("orders", getOrders());
+		model.addAttribute("activeOrders", getActiveOrders());
+		model.addAttribute("secondaryOrders", getSecondaryOrders());
 
 		return "lobby.html";
 	}
@@ -144,8 +146,8 @@ public class PageController implements WebMvcConfigurer {
 
 	@RequestMapping("/order")
 	public String registerOrder(@ModelAttribute OrderDTO order,
-							   @RequestParam(value = "error", required = false) String error,
-							   Model model) {
+								@RequestParam(value = "error", required = false) String error,
+								Model model) {
 
 		insertLanguagesIntoModel(model);
 		model.addAttribute("user", utility.getCurrentUser());
@@ -176,7 +178,9 @@ public class PageController implements WebMvcConfigurer {
 		}
 
 		insertLanguagesIntoModel(model);
-		model.addAttribute("user", utility.getCurrentUser());
+
+		User currentUser = utility.getCurrentUser();
+		model.addAttribute("user", currentUser);
 
 		setLocalFields(order);
 		model.addAttribute("updateOrder", order);
@@ -184,9 +188,16 @@ public class PageController implements WebMvcConfigurer {
 		model.addAttribute("categories", utility.getLocalCategories());
 
 		AbstractState state = order.getLiveState();
-		model.addAttribute("available", state.getAvailableFields());
 		model.addAttribute("submit", utility.getLocalizedText(state.getButtonText()));
-		model.addAttribute("cancel", state.isCancelable());
+		if (currentUser.getRole() == state.getRequiredRole()) {
+			model.addAttribute("available", state.getAvailableFields());
+			model.addAttribute("cancel", state.isCancelable());
+			model.addAttribute("readonly", false);
+		} else {
+			model.addAttribute("available", Collections.emptyList());
+			model.addAttribute("cancel", false);
+			model.addAttribute("readonly", false);
+		}
 
 		return "order-details.html";
 	}
@@ -207,19 +218,18 @@ public class PageController implements WebMvcConfigurer {
 		return userService.getAllUsers().getUsers();
 	}
 
-	private List<OrderDTO> getOrders() {
+	private List<OrderDTO> getActiveOrders() {
 		List<OrderDTO> orders;
 		User user = utility.getCurrentUser();
+		orders = orderService.getActiveOrders(user);
+		orders.forEach(this::setLocalFields);
+		return orders;
+	}
 
-		if (user.getRole() == RoleType.ROLE_MASTER) {
-			orders = orderService.getOrdersByMaster(user.getLogin());
-		} else if (user.getRole() == RoleType.ROLE_MANAGER) {
-			//orders = orderService.getOrdersByManager(user.getLogin());
-			orders = orderService.getActiveOrders();
-		} else {
-			orders = orderService.getOrdersByAuthor(user.getLogin());
-		}
-
+	private List<OrderDTO> getSecondaryOrders() {
+		List<OrderDTO> orders;
+		User user = utility.getCurrentUser();
+		orders = orderService.getSecondaryOrders(user);
 		orders.forEach(this::setLocalFields);
 		return orders;
 	}

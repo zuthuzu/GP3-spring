@@ -2,7 +2,6 @@ package ua.kpi.tef.zu.gp3spring.entity.states;
 
 import lombok.Getter;
 import lombok.Setter;
-import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 
 import java.util.ArrayList;

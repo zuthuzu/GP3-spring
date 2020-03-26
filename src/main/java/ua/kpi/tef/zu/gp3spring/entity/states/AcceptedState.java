@@ -1,6 +1,5 @@
 package ua.kpi.tef.zu.gp3spring.entity.states;
 
-import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 
 import java.util.Arrays;

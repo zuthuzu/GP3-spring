@@ -16,11 +16,17 @@ import java.util.Optional;
 public interface OrderRepo extends JpaRepository<WorkOrder, Long> {
 	Optional<WorkOrder> findById(long id);
 
+	List<WorkOrder> findByStatusIn(Collection<OrderStatus> statuses);
+
 	List<WorkOrder> findByAuthor(String author);
+
+	List<WorkOrder> findByAuthorAndStatusIn(String author, Collection<OrderStatus> statuses);
 
 	List<WorkOrder> findByManager(String manager);
 
+	List<WorkOrder> findByManagerAndStatusIn(String manager, Collection<OrderStatus> statuses);
+
 	List<WorkOrder> findByMaster(String master);
 
-	List<WorkOrder> findByStatusIn(Collection<OrderStatus> statuses);
+	List<WorkOrder> findByMasterAndStatusIn(String master, Collection<OrderStatus> statuses);
 }

@@ -58,7 +58,7 @@ public class RedirectController {
 
 		RedirectView redirectView = new RedirectView();
 
-		if (login == null || role == null ) {
+		if (login == null || role == null) {
 			redirectView.setUrl("/users?error");
 			return redirectView;
 		}
@@ -124,25 +124,19 @@ public class RedirectController {
 	public RedirectView updateOrder(@ModelAttribute OrderDTO modelOrder, RedirectAttributes redirectAttributes) {
 		log.info("Order update request from front end: " + modelOrder);
 		RedirectView redirectView = new RedirectView();
-
-		if (!restoreCategoryFromLocalView(modelOrder)) {
-			redirectView.setUrl("lobby?orderfail");
-			return redirectView;
-		}
-
+		restoreCategoryFromLocalView(modelOrder);
 		redirectView.setUrl(orderService.updateOrder(modelOrder, utility.getCurrentUser()) ? "/lobby?order" : "lobby?orderfail");
 		return redirectView;
 	}
 
 	private boolean verifyUserFields(User user) {
-		return  user.getName().matches(RegistrationValidation.NAME_REGEX) &&
+		return user.getName().matches(RegistrationValidation.NAME_REGEX) &&
 				user.getLogin().matches(RegistrationValidation.LOGIN_REGEX) &&
 				user.getPhone().matches(RegistrationValidation.PHONE_REGEX) &&
 				(user.getEmail().isEmpty() || user.getEmail().matches(RegistrationValidation.EMAIL_REGEX));
 
 	}
 
-	@SuppressWarnings("BooleanMethodIsAlwaysInverted")
 	private boolean restoreCategoryFromLocalView(OrderDTO modelOrder) {
 		int categoryIndex = utility.getLocalCategories().indexOf(modelOrder.getCategory());
 		if (categoryIndex == -1) {
