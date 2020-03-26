@@ -97,7 +97,7 @@ public class RedirectController {
 
 	@RequestMapping("/neworder")
 	public RedirectView newOrder(@ModelAttribute OrderDTO modelOrder, RedirectAttributes redirectAttributes) {
-		log.info("Obtained new order credentials from front end: " + modelOrder);
+		log.info("Obtained new order credentials from front end: " + modelOrder.toStringSkipEmpty());
 
 		RedirectView redirectView = new RedirectView();
 
@@ -122,7 +122,7 @@ public class RedirectController {
 
 	@RequestMapping("/updateorder")
 	public RedirectView updateOrder(@ModelAttribute OrderDTO modelOrder, RedirectAttributes redirectAttributes) {
-		log.info("Order update request from front end: " + modelOrder);
+		log.info("Order update request from front end: " + modelOrder.toStringSkipEmpty());
 		RedirectView redirectView = new RedirectView();
 		restoreCategoryFromLocalView(modelOrder);
 		redirectView.setUrl(orderService.updateOrder(modelOrder, utility.getCurrentUser()) ? "/lobby?order" : "lobby?orderfail");

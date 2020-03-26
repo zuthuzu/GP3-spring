@@ -104,7 +104,7 @@ public class OrderService {
 	 */
 	public boolean updateOrder(OrderDTO modelOrder, User initiator) {
 		if (!modelOrder.getAction().equals(ACTION_PROCEED) && !modelOrder.getAction().equals(ACTION_CANCEL)) {
-			log.error("Illegal action in update request: " + modelOrder);
+			log.error("Illegal action in update request: " + modelOrder.toStringSkipEmpty());
 			return false;
 		}
 		boolean proceed = modelOrder.getAction().equals(ACTION_PROCEED); //false == cancel
@@ -123,22 +123,20 @@ public class OrderService {
 		This means we have to postpone these checks until after we've performed a DB read*/
 		AbstractState state = dbOrder.getLiveState();
 		if (!proceed && !state.isCancelable()) {
-			log.error("Illegal cancel attempt in update request: " + modelOrder);
+			log.error("Illegal cancel attempt in update request: " + modelOrder.toStringSkipEmpty());
 			return false;
 		}
 		if (initiator.getRole() != state.getRequiredRole()) {
-			log.error("Illegal user role in update request: " + modelOrder);
+			log.error("Illegal user role in update request: " + modelOrder.toStringSkipEmpty());
 			return false;
 		}
 		if (!verifyRequiredFields(modelOrder, proceed ? state.getRequiredFields() : state.getPreCancelFields())) {
-			log.error("Incomplete data in update request: " + modelOrder);
 			return false;
 		}
-
-		WorkOrder compositeOrder = assembleOrder(dbOrder, modelOrder, initiator, proceed);
+		modelOrder.setActualStatus(proceed ? state.getNextState() : OrderStatus.CANCELLED); //smuggling a parameter in DTO
 
 		try {
-			saveOrder(compositeOrder);
+			saveOrder(assembleOrder(dbOrder, modelOrder, initiator));
 		} catch (RegistrationException e) {
 			return false;
 		}
@@ -150,13 +148,22 @@ public class OrderService {
 		for (String field : fields) {
 			switch (field) {
 				case "price":
-					if (modelOrder.getPrice() == 0) return false;
+					if (modelOrder.getPrice() == 0) {
+						log.error("Incomplete data: missing price in update request: " + modelOrder.toStringSkipEmpty());
+						return false;
+					}
 					break;
 				case "manager_comment":
-					if (isEmptyOrNull(modelOrder.getManagerComment())) return false;
+					if (isEmptyOrNull(modelOrder.getManagerComment())) {
+						log.error("Incomplete data: missing manager comment in update request: " + modelOrder.toStringSkipEmpty());
+						return false;
+					}
 					break;
 				case "master_comment":
-					if (isEmptyOrNull(modelOrder.getMasterComment())) return false;
+					if (isEmptyOrNull(modelOrder.getMasterComment())) {
+						log.error("Incomplete data: missing master comment in update request: " + modelOrder.toStringSkipEmpty());
+						return false;
+					}
 					break;
 			}
 		}
@@ -171,7 +178,7 @@ public class OrderService {
 	 * @param initiator  user who initiated the update
 	 * @return an entity ready for updating into DB
 	 */
-	private WorkOrder assembleOrder(OrderDTO dbOrder, OrderDTO modelOrder, User initiator, boolean proceed) {
+	private WorkOrder assembleOrder(OrderDTO dbOrder, OrderDTO modelOrder, User initiator) {
 		AbstractState state = dbOrder.getLiveState();
 		List<String> availableFields = state.getAvailableFields();
 
@@ -183,7 +190,7 @@ public class OrderService {
 						? initiator.getLogin() : dbOrder.getManagerLogin()) //first authorised initiator gets recorded
 				.master((state.getRequiredRole() == RoleType.ROLE_MASTER && isEmptyOrNull(dbOrder.getMasterLogin()))
 						? initiator.getLogin() : dbOrder.getMasterLogin()) //first authorised initiator gets recorded
-				.status(proceed ? state.getNextState() : OrderStatus.CANCELLED)
+				.status(modelOrder.getActualStatus())
 				.category((availableFields.contains("category") && modelOrder.getActualCategory() != null)
 						? modelOrder.getActualCategory() : dbOrder.getActualCategory()) //this field doesn't get checked well enough previously
 				.item(availableFields.contains("item") ? modelOrder.getItem() : dbOrder.getItem())
