@@ -7,8 +7,10 @@ import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.dto.UserDTO;
 import ua.kpi.tef.zu.gp3spring.entity.ItemCategory;
+import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 import ua.kpi.tef.zu.gp3spring.entity.User;
 
 import java.util.ArrayList;
@@ -56,5 +58,18 @@ public class ControllerUtility {
 		} catch (NoSuchMessageException e) {
 			return property;
 		}
+	}
+
+	public boolean canPlaceNewOrder(User user) {
+		return user.getRole() == RoleType.ROLE_USER;
+	}
+
+	public boolean canEditThisOrder(User user, OrderDTO order) {
+		//TODO detailed state-based tech
+		return user.getRole() == order.getLiveState().getRequiredRole();
+	}
+
+	public boolean canViewThisOrder(User user, OrderDTO order) {
+		return true;
 	}
 }

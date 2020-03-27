@@ -34,22 +34,6 @@ public class RedirectController {
 		this.orderService = orderService;
 	}
 
-
-	//After log in: determines which home page to call for each user type
-	@RequestMapping("/success")
-	public RedirectView localRedirect() {
-		RedirectView redirectView = new RedirectView();
-
-		User currentUser = utility.getCurrentUser();
-		if (currentUser.getRole() == RoleType.ROLE_ADMIN) {
-			redirectView.setUrl("/users");
-		} else {
-			redirectView.setUrl("/lobby");
-		}
-
-		return redirectView;
-	}
-
 	//Admin only tool: changes user roles
 	@RequestMapping("/setrole")
 	public RedirectView setRole(Model model,
@@ -116,7 +100,7 @@ public class RedirectController {
 			return redirectView;
 		}
 
-		redirectView.setUrl("/lobby?order");
+		redirectView.setUrl("/lobby?success");
 		return redirectView;
 	}
 
@@ -125,7 +109,7 @@ public class RedirectController {
 		log.info("Order update request from front end: " + modelOrder.toStringSkipEmpty());
 		RedirectView redirectView = new RedirectView();
 		restoreCategoryFromLocalView(modelOrder);
-		redirectView.setUrl(orderService.updateOrder(modelOrder, utility.getCurrentUser()) ? "/lobby?order" : "lobby?orderfail");
+		redirectView.setUrl(orderService.updateOrder(modelOrder, utility.getCurrentUser()) ? "/lobby?success" : "lobby?error");
 		return redirectView;
 	}
 

@@ -3,8 +3,6 @@ package ua.kpi.tef.zu.gp3spring.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ua.kpi.tef.zu.gp3spring.controller.DatabaseException;
 import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.ArchiveOrder;
@@ -153,7 +151,9 @@ public class OrderService {
 			} else {
 				saveOrder(unwrapFullOrder(preparedOrder));
 				log.info(preparedOrder.getActualStatus() == OrderStatus.PENDING ?
-						"New order created: " : "Order updated: " + preparedOrder.toStringSkipEmpty());
+						"New order created: " : (preparedOrder.isArchived() ?
+						"Archived order updated: " : "Order updated: ")
+						+ preparedOrder.toStringSkipEmpty());
 			}
 		} catch (DatabaseException e) {
 			log.error(e.getMessage());
@@ -185,7 +185,7 @@ public class OrderService {
 					}
 					break;
 				case "user_stars":
-					if (modelOrder.getUserStars() == 0) {
+					if (modelOrder.getUserStars() <= 0 || modelOrder.getUserStars() > 5) {
 						log.error("Incomplete data: missing user rating in update request: " + modelOrder.toStringSkipEmpty());
 						return false;
 					}
@@ -216,6 +216,7 @@ public class OrderService {
 				.masterLogin((state.getRequiredRole() == RoleType.ROLE_MASTER && isEmptyOrNull(dbOrder.getMasterLogin()))
 						? initiator.getLogin() : dbOrder.getMasterLogin()) //first authorised initiator gets recorded
 				.actualStatus(modelOrder.getActualStatus()) //by now it's set as either state.getNextState() or CANCELLED
+				.isArchived(dbOrder.isArchived())
 				.actualCategory((availableFields.contains("category") && modelOrder.getActualCategory() != null)
 						? modelOrder.getActualCategory() : dbOrder.getActualCategory()) //this field doesn't get checked well enough previously
 				.item(availableFields.contains("item") ? modelOrder.getItem() : dbOrder.getItem())
@@ -237,7 +238,8 @@ public class OrderService {
 		}
 
 		WorkOrder order = orderRepo.findById(realID).orElseThrow(() -> new IllegalArgumentException("Can't find order with ID " + id));
-		return wrapOrderInDTO(order);
+
+		return wrapOrderInDTO(order, getUserCache(Arrays.asList(order)));
 	}
 
 	public void saveNewOrder(OrderDTO order) throws DatabaseException {
@@ -245,49 +247,80 @@ public class OrderService {
 	}
 
 	public void saveOrder(WorkOrder order) throws DatabaseException {
-		try {
-			orderRepo.save(order);
-		} catch (Exception e) {
-			throw new DatabaseException("Couldn't save a new order", e);
+		if (order.getStatus().isArchived()) {
+			ArchiveOrder archiveOrder;
+
+			try {
+				archiveOrder = (ArchiveOrder) order;
+			} catch (ClassCastException e) {
+				throw new DatabaseException("Bad order downcast: " + order);
+			}
+
+			try {
+				archiveRepo.save(archiveOrder);
+			} catch (Exception e) {
+				throw new DatabaseException("Couldn't save an order", e);
+			}
+		} else {
+			try {
+				orderRepo.save(order);
+			} catch (Exception e) {
+				throw new DatabaseException("Couldn't save an order", e);
+			}
 		}
 	}
 
 	private List<OrderDTO> wrapWorkCollectionInDTO(List<? extends WorkOrder> entities) {
-		//TODO DB access optimization: read all involved users in one query to avoid 3 separate reads per order
+		Map<String, String> userCache = getUserCache(entities);
 		List<OrderDTO> result = new ArrayList<>();
 		for (WorkOrder order : entities) {
-			result.add(wrapOrderInDTO(order));
+			result.add(wrapOrderInDTO(order, userCache));
 		}
 		return result;
 	}
 
-	private OrderDTO wrapOrderInDTO(WorkOrder order) {
+	/** Without this cache wrapWorkCollectionInDTO would've performed 3 separate DB reads for each order*/
+	private Map<String, String> getUserCache(List<? extends WorkOrder> entities) {
+		Map<String, String> userCache = new HashMap<>();
+		for (WorkOrder order : entities) {
+			userCache.put(order.getAuthor(), null);
+			userCache.put(order.getManager(), null);
+			userCache.put(order.getMaster(), null);
+		}
+
+		List<User> userList = userService.loadUsersByLoginCollection(userCache.keySet()).getUsers();
+		userList.forEach(u -> userCache.put(u.getLogin(), u.getName()));
+		return userCache;
+	}
+
+	private OrderDTO wrapOrderInDTO(WorkOrder order, Map<String, String> userCache) {
 		OrderDTO result = OrderDTO.builder()
 				.id(order.getId())
 				.actualCreationDate(order.getCreationDate())
-				.author(userService.getUsernameByLogin(order.getAuthor()))
+				.author(userCache.get(order.getAuthor()))
 				.authorLogin(order.getAuthor())
-				.manager(userService.getUsernameByLogin(order.getManager()))
+				.manager(userCache.get(order.getManager()))
 				.managerLogin(order.getManager())
-				.master(userService.getUsernameByLogin(order.getMaster()))
+				.master(userCache.get(order.getMaster()))
 				.masterLogin(order.getMaster())
 				.actualCategory(order.getCategory())
 				.item(order.getItem())
 				.complaint(order.getComplaint())
 				.actualStatus(order.getStatus())
+				.isArchived(order.getStatus().isArchived())
 				.price(order.getPrice())
 				.managerComment(order.getManagerComment())
 				.masterComment(order.getMasterComment())
 				.build();
 
 		StateFactory.setState(result);
-		if (result.getActualStatus().isArchived()) {
+		if (result.isArchived()) {
 			try {
 				ArchiveOrder archiveOrder = (ArchiveOrder) order;
 				result.setUserComment(archiveOrder.getUserComment());
 				result.setUserStars(archiveOrder.getUserStars());
 			} catch (ClassCastException e) {
-				log.error("Bad order acquisition (not properly archived): " + order);
+				log.error("Bad order downcast: " + order);
 			}
 		}
 		return result;

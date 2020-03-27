@@ -88,43 +88,6 @@ public class PageController implements WebMvcConfigurer {
 		return "index.html";
 	}
 
-	@RequestMapping("/lobby")
-	public String lobbyPage(Model model,
-							@RequestParam(value = "denied", required = false) String denied,
-							@RequestParam(value = "orderfail", required = false) String orderfail,
-							@RequestParam(value = "order", required = false) String order) {
-		insertLanguagesIntoModel(model);
-
-		model.addAttribute("user", utility.getCurrentUser());
-		model.addAttribute("denied", denied != null);
-		model.addAttribute("orderfail", orderfail != null);
-		model.addAttribute("order", order != null);
-
-		model.addAttribute("activeOrders", getActiveOrders());
-		model.addAttribute("secondaryOrders", getSecondaryOrders());
-
-		return "lobby.html";
-	}
-
-	@RequestMapping("/users")
-	public String usersPage(Model model,
-							@RequestParam(value = "error", required = false) String error,
-							@RequestParam(value = "success", required = false) String success) {
-		insertLanguagesIntoModel(model);
-
-		User currentUser = utility.getCurrentUser();
-		model.addAttribute("user", currentUser);
-
-		if (currentUser.getRole() == RoleType.ROLE_ADMIN) {
-			model.addAttribute("users", getAllUsers());
-			model.addAttribute("error", error != null);
-			model.addAttribute("success", success != null);
-			return "users.html";
-		} else {
-			return accessDeniedPage(model);
-		}
-	}
-
 	@RequestMapping("/reg")
 	public String registerUser(@ModelAttribute User user,
 							   @RequestParam(value = "error", required = false) String error,
@@ -144,19 +107,56 @@ public class PageController implements WebMvcConfigurer {
 		return "reg.html";
 	}
 
+	@RequestMapping("/lobby")
+	public String lobbyPage(Model model,
+							@RequestParam(value = "denied", required = false) String denied,
+							@RequestParam(value = "error", required = false) String error,
+							@RequestParam(value = "success", required = false) String success) {
+		User currentUser = utility.getCurrentUser();
+		if (currentUser.getRole() == RoleType.ROLE_ADMIN) {
+			return usersPage(model, error, success);
+		}
+
+		insertLanguagesIntoModel(model);
+
+		model.addAttribute("user", currentUser);
+		model.addAttribute("canPlaceNew", utility.canPlaceNewOrder(currentUser));
+
+		model.addAttribute("denied", denied != null);
+		model.addAttribute("error", error != null);
+		model.addAttribute("success", success != null);
+
+		model.addAttribute("activeOrders", getActiveOrders());
+		model.addAttribute("secondaryOrders", getSecondaryOrders());
+
+		return "lobby.html";
+	}
+
+	public String usersPage(Model model,
+							@RequestParam(value = "error", required = false) String error,
+							@RequestParam(value = "success", required = false) String success) {
+		insertLanguagesIntoModel(model);
+		model.addAttribute("user", utility.getCurrentUser());
+		model.addAttribute("users", getAllUsers());
+		model.addAttribute("error", error != null);
+		model.addAttribute("success", success != null);
+		return "users.html";
+	}
+
 	@RequestMapping("/order")
 	public String registerOrder(@ModelAttribute OrderDTO order,
 								@RequestParam(value = "error", required = false) String error,
 								Model model) {
+		User currentUser = utility.getCurrentUser();
+		if (!utility.canPlaceNewOrder(currentUser)) {
+			return accessDeniedPage(model);
+		}
 
 		insertLanguagesIntoModel(model);
-		model.addAttribute("user", utility.getCurrentUser());
-
+		model.addAttribute("user", currentUser);
 		model.addAttribute("categories", utility.getLocalCategories());
-
 		model.addAttribute("error", error != null);
 		model.addAttribute("newOrder", order == null ? new OrderDTO() : order);
-
 		return "order-new.html";
 	}
 
@@ -177,9 +177,12 @@ public class PageController implements WebMvcConfigurer {
 			return accessDeniedPage(model);
 		}
 
-		insertLanguagesIntoModel(model);
-
 		User currentUser = utility.getCurrentUser();
+		if (!utility.canViewThisOrder(currentUser, order)) {
+			return accessDeniedPage(model);
+		}
+
+		insertLanguagesIntoModel(model);
 		model.addAttribute("user", currentUser);
 
 		setLocalFields(order);
@@ -189,14 +192,14 @@ public class PageController implements WebMvcConfigurer {
 
 		AbstractState state = order.getLiveState();
 		model.addAttribute("submit", utility.getLocalizedText(state.getButtonText()));
-		if (currentUser.getRole() == state.getRequiredRole()) {
+		if (utility.canEditThisOrder(currentUser, order)) {
 			model.addAttribute("available", state.getAvailableFields());
+			model.addAttribute("proceed", true);
 			model.addAttribute("cancel", state.isCancelable());
-			model.addAttribute("readonly", false);
 		} else {
 			model.addAttribute("available", Collections.emptyList());
+			model.addAttribute("proceed", false);
 			model.addAttribute("cancel", false);
-			model.addAttribute("readonly", true);
 		}
 
 		return "order-details.html";

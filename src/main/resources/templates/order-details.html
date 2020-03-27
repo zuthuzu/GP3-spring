@@ -23,6 +23,7 @@
             <div>
                 <form id="updateOrder" name="updateOrder" action="#" th:action="@{/updateorder}" th:object="${updateOrder}" method="post">
                     <input type="hidden" id="id" name="id" th:field="*{id}">
+                    <input type="hidden" id="archived" name="archived" th:field="*{archived}">
                     <div class="form-group">
                         <label for="date" th:text="#{order.creation_date}">{Category}</label>
                         <input class="form-control" id="date" name="date" th:field="*{creationDate}" th:placeholder="#{order.creation_date}" disabled>
@@ -80,9 +81,44 @@
                                   th:disabled="!${#lists.contains(available, 'master_comment')}">
                         </textarea>
                     </div>
+                    <div class="form-group">
+                        <div th:text="#{order.user_stars}">{Rating}</div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="userStars" th:field="*{userStars}" id="star1" value="1"
+                                   th:disabled="!${#lists.contains(available, 'user_stars')}">
+                            <label class="form-check-label" for="star1">1</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="userStars" th:field="*{userStars}" id="star2" value="2"
+                                   th:disabled="!${#lists.contains(available, 'user_stars')}">
+                            <label class="form-check-label" for="star2">2</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="userStars" th:field="*{userStars}" id="star3" value="3"
+                                   th:disabled="!${#lists.contains(available, 'user_stars')}">
+                            <label class="form-check-label" for="star3">3</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="userStars" th:field="*{userStars}" id="star4" value="4"
+                                   th:disabled="!${#lists.contains(available, 'user_stars')}">
+                            <label class="form-check-label" for="star4">4</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="userStars" th:field="*{userStars}" id="star5" value="5"
+                                   th:disabled="!${#lists.contains(available, 'user_stars')}">
+                            <label class="form-check-label" for="star5">5</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="userComment" th:text="#{order.user_comment}">{Price}</label>
+                        <textarea class="form-control" id="userComment" name="userComment" th:field="*{userComment}" rows="2"
+                                  th:disabled="!${#lists.contains(available, 'user_comment')}">
+                        </textarea>
+                    </div>
                     <div>
-                        <button class="btn btn-secondary" type="submit" name="action" value="proceed" th:text="${submit}" th:disabled="${readonly}">{Proceed according to state}</button>
+                        <button class="btn btn-secondary" type="submit" name="action" value="proceed" th:text="${submit}" th:if="${proceed}">{Proceed according to state}</button>
                         <button class="btn btn-secondary" type="submit" name="action" value="cancel" th:text="#{order.action.cancel}" th:if="${cancel}">{Cancel the order}</button>
+                        <button class="btn btn-secondary" type="button" onclick="location.href='/lobby'" th:text="#{order.action.lobby}">{Back}</button>
                     </div>
                 </form>
             </div>

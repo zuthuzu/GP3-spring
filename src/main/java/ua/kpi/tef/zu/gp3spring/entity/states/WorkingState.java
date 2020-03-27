@@ -16,7 +16,7 @@ public class WorkingState extends AbstractState {
 		//setRequiredFields(); //no required fields at this state
 		setAvailableFields(Arrays.asList("master_comment"));
 		setCancelable(true);
-		setPreCancelFields(Arrays.asList("manager_comment"));
+		setPreCancelFields(Arrays.asList("master_comment"));
 		setButtonText("order.action.done");
 	}
 }

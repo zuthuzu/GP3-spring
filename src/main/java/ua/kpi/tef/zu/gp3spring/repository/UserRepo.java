@@ -4,6 +4,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ua.kpi.tef.zu.gp3spring.entity.User;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,5 +19,5 @@ public interface UserRepo extends JpaRepository<User, Long> {
 
 	Optional<User> findByLogin(String login);
 
-	//Optional<User> findByLoginAndPassword(String login, String password);
+	List<User> findByLoginIn(Collection<String> logins);
 }

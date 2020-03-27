@@ -35,6 +35,7 @@ public class OrderDTO {
 	private String status; //representation in user's locale, refreshed at controller
 	private OrderStatus actualStatus; //value from DB
 	private AbstractState liveState;
+	private boolean isArchived;
 	private int price;
 	private String managerComment;
 	private String masterComment;
@@ -45,6 +46,7 @@ public class OrderDTO {
 	public String toStringSkipEmpty() {
 		return "OrderDTO{" +
 				"id=" + id +
+				", archived=" + isArchived +
 				(Objects.nonNull(creationDate) ? ", creationDate='" + creationDate + '\'' : "") +
 				(Objects.nonNull(actualCreationDate) ? ", actualCreationDate='" + actualCreationDate + '\'' : "") +
 				(Objects.nonNull(author) ? ", author='" + author + '\'' : "") +

@@ -17,16 +17,16 @@
             <div class="alert alert-danger" role="alert" th:if="${denied}">
                 <span th:text="#{general.access_denied}">{Access denied}</span>
             </div>
-            <div class="alert alert-danger" role="alert" th:if="${orderfail}">
+            <div class="alert alert-danger" role="alert" th:if="${error}">
                 <span th:text="#{lobby.order.error}">{Order not OK}</span>
             </div>
-            <div class="alert alert-success" role="alert" th:if="${order}">
+            <div class="alert alert-success" role="alert" th:if="${success}">
                 <span th:text="#{lobby.order.saved}">{Order OK}</span>
             </div>
         </div>
     </div>
 
-    <div class="row bg-light">
+    <div class="row bg-light" th:if="${canPlaceNew}">
         <div class="col">
             <h3 th:text="#{lobby.welcome}">{Header}</h3>
 

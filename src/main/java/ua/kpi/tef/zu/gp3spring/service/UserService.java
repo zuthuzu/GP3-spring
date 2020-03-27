@@ -19,6 +19,7 @@ import ua.kpi.tef.zu.gp3spring.repository.UserRepo;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Created by Anton Domin on 2020-03-05
@@ -35,10 +36,6 @@ public class UserService implements UserDetailsService {
 	@Autowired
 	public UserService(UserRepo userRepository) {
 		this.userRepo = userRepository;
-	}
-
-	public UserListDTO getAllUsers() {
-		return new UserListDTO(userRepo.findAll());
 	}
 
 	@PostConstruct
@@ -75,13 +72,11 @@ public class UserService implements UserDetailsService {
 				log.error(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
 				databaseException.setDuplicate(true);
 			} else {
-				//e.printStackTrace();
 				log.error("Couldn't save a new user", e);
 			}
 			throw databaseException;
 
 		} catch (Exception e) {
-			//e.printStackTrace();
 			log.error("Couldn't save a new user", e);
 			throw new DatabaseException(e);
 		}
@@ -163,5 +158,13 @@ public class UserService implements UserDetailsService {
 			log.error(e.getMessage());
 			return "";
 		}
+	}
+
+	public UserListDTO loadUsersByLoginCollection(Set<String> filter) {
+		return new UserListDTO(userRepo.findByLoginIn(filter));
+	}
+
+	public UserListDTO getAllUsers() {
+		return new UserListDTO(userRepo.findAll());
 	}
 }
