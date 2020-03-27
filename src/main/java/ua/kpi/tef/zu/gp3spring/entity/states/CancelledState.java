@@ -10,6 +10,7 @@ import java.util.Arrays;
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public class CancelledState extends AbstractState {
 	public CancelledState() {
+		setCurrentState(OrderStatus.CANCELLED);
 		setNextState(OrderStatus.CANCELLED);
 		setRequiredRole(RoleType.ROLE_USER);
 		setRequiredFields(Arrays.asList("user_stars"));

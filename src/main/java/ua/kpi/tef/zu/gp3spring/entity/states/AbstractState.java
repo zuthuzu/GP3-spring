@@ -5,6 +5,7 @@ import lombok.Setter;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -13,6 +14,7 @@ import java.util.List;
 @Getter
 @Setter
 public abstract class AbstractState {
+	private OrderStatus currentState;
 	private OrderStatus nextState;
 
 	private RoleType requiredRole; //who can call initiate a change from this state to another
@@ -23,4 +25,14 @@ public abstract class AbstractState {
 	private List<String> preCancelFields = new ArrayList<>(); //what he MUST fill before cancelling
 
 	private String buttonText;
+
+	/**
+	 * @param proceed direction of state change (true = to next state, false = cancel the order)
+	 * @return whether we need to move the order to archive during this state change
+	 */
+	public boolean moveToArchive(boolean proceed) {
+		if (!proceed && isCancelable) return true;
+		List<OrderStatus> archived = Arrays.asList(OrderStatus.ARCHIVED, OrderStatus.CANCELLED);
+		return proceed && archived.contains(nextState) && !archived.contains(currentState);
+	}
 }

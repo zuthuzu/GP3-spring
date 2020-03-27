@@ -10,8 +10,8 @@ import java.util.Arrays;
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public class PendingState extends AbstractState {
 	public PendingState() {
+		setCurrentState(OrderStatus.PENDING);
 		setNextState(OrderStatus.ACCEPTED);
-
 		setRequiredRole(RoleType.ROLE_MANAGER);
 		setRequiredFields(Arrays.asList("price"));
 		setAvailableFields(Arrays.asList("category", "item", "manager_comment", "price"));

@@ -3,14 +3,17 @@ package ua.kpi.tef.zu.gp3spring.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ua.kpi.tef.zu.gp3spring.controller.RegistrationException;
 import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
+import ua.kpi.tef.zu.gp3spring.entity.ArchiveOrder;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 import ua.kpi.tef.zu.gp3spring.entity.User;
 import ua.kpi.tef.zu.gp3spring.entity.states.AbstractState;
 import ua.kpi.tef.zu.gp3spring.entity.states.OrderStatus;
 import ua.kpi.tef.zu.gp3spring.entity.WorkOrder;
 import ua.kpi.tef.zu.gp3spring.entity.states.StateFactory;
+import ua.kpi.tef.zu.gp3spring.repository.ArchiveRepo;
 import ua.kpi.tef.zu.gp3spring.repository.OrderRepo;
 
 import java.time.LocalDate;
@@ -27,13 +30,15 @@ public class OrderService {
 	private final static String ACTION_CANCEL = "cancel";
 
 	private OrderRepo orderRepo;
+	private ArchiveRepo archiveRepo;
 
 	@Autowired
 	private UserService userService;
 
 	@Autowired
-	public OrderService(OrderRepo orderRepository) {
+	public OrderService(OrderRepo orderRepository, ArchiveRepo archiveRepository) {
 		this.orderRepo = orderRepository;
+		this.archiveRepo = archiveRepository;
 	}
 
 	/**
@@ -88,8 +93,7 @@ public class OrderService {
 			filter = Arrays.asList(OrderStatus.ACCEPTED, OrderStatus.WORKING);
 			return wrapWorkCollectionInDTO(orderRepo.findByManagerAndStatusIn(initiator.getLogin(), filter));
 		} else {
-			filter = Arrays.asList(OrderStatus.ARCHIVED, OrderStatus.CANCELLED);
-			return wrapWorkCollectionInDTO(orderRepo.findByAuthorAndStatusIn(initiator.getLogin(), filter));
+			return wrapWorkCollectionInDTO(archiveRepo.findByAuthor(initiator.getLogin()));
 		}
 	}
 
@@ -133,10 +137,17 @@ public class OrderService {
 		if (!verifyRequiredFields(modelOrder, proceed ? state.getRequiredFields() : state.getPreCancelFields())) {
 			return false;
 		}
+
 		modelOrder.setActualStatus(proceed ? state.getNextState() : OrderStatus.CANCELLED); //smuggling a parameter in DTO
 
+		OrderDTO preparedOrder = assembleOrder(dbOrder, modelOrder, initiator);
+
 		try {
-			saveOrder(assembleOrder(dbOrder, modelOrder, initiator));
+			if (state.moveToArchive(proceed)) {
+				archiveOrder(unwrapFullOrder(preparedOrder));
+			} else {
+				saveOrder(unwrapFullOrder(preparedOrder));
+			}
 		} catch (RegistrationException e) {
 			return false;
 		}
@@ -165,6 +176,12 @@ public class OrderService {
 						return false;
 					}
 					break;
+				case "user_stars":
+					if (modelOrder.getUserStars() == 0) {
+						log.error("Incomplete data: missing user rating in update request: " + modelOrder.toStringSkipEmpty());
+						return false;
+					}
+					break;
 			}
 		}
 		return true;
@@ -178,26 +195,28 @@ public class OrderService {
 	 * @param initiator  user who initiated the update
 	 * @return an entity ready for updating into DB
 	 */
-	private WorkOrder assembleOrder(OrderDTO dbOrder, OrderDTO modelOrder, User initiator) {
+	private OrderDTO assembleOrder(OrderDTO dbOrder, OrderDTO modelOrder, User initiator) {
 		AbstractState state = dbOrder.getLiveState();
 		List<String> availableFields = state.getAvailableFields();
 
-		return WorkOrder.builder()
+		return OrderDTO.builder()
 				.id(dbOrder.getId())
-				.creationDate(dbOrder.getActualCreationDate())
-				.author(dbOrder.getAuthorLogin())
-				.manager((state.getRequiredRole() == RoleType.ROLE_MANAGER && isEmptyOrNull(dbOrder.getManagerLogin()))
+				.actualCreationDate(dbOrder.getActualCreationDate())
+				.authorLogin(dbOrder.getAuthorLogin())
+				.managerLogin((state.getRequiredRole() == RoleType.ROLE_MANAGER && isEmptyOrNull(dbOrder.getManagerLogin()))
 						? initiator.getLogin() : dbOrder.getManagerLogin()) //first authorised initiator gets recorded
-				.master((state.getRequiredRole() == RoleType.ROLE_MASTER && isEmptyOrNull(dbOrder.getMasterLogin()))
+				.masterLogin((state.getRequiredRole() == RoleType.ROLE_MASTER && isEmptyOrNull(dbOrder.getMasterLogin()))
 						? initiator.getLogin() : dbOrder.getMasterLogin()) //first authorised initiator gets recorded
-				.status(modelOrder.getActualStatus())
-				.category((availableFields.contains("category") && modelOrder.getActualCategory() != null)
+				.actualStatus(modelOrder.getActualStatus()) //by now it's set as either state.getNextState() or CANCELLED
+				.actualCategory((availableFields.contains("category") && modelOrder.getActualCategory() != null)
 						? modelOrder.getActualCategory() : dbOrder.getActualCategory()) //this field doesn't get checked well enough previously
 				.item(availableFields.contains("item") ? modelOrder.getItem() : dbOrder.getItem())
 				.complaint(availableFields.contains("complaint") ? modelOrder.getComplaint() : dbOrder.getComplaint())
 				.price(availableFields.contains("price") ? modelOrder.getPrice() : dbOrder.getPrice())
 				.managerComment(availableFields.contains("manager_comment") ? modelOrder.getManagerComment() : dbOrder.getManagerComment())
 				.masterComment(availableFields.contains("master_comment") ? modelOrder.getMasterComment() : dbOrder.getMasterComment())
+				.userComment(availableFields.contains("user_comment") ? modelOrder.getUserComment() : dbOrder.getUserComment())
+				.userStars(availableFields.contains("user_stars") ? modelOrder.getUserStars() : dbOrder.getUserStars())
 				.build();
 	}
 
@@ -217,7 +236,7 @@ public class OrderService {
 		saveOrder(unwrapNewOrder(order));
 	}
 
-	private void saveOrder(WorkOrder order) throws RegistrationException {
+	public void saveOrder(WorkOrder order) throws RegistrationException {
 		try {
 			orderRepo.save(order);
 			log.info(order.getStatus() == OrderStatus.PENDING ? "New order created: " : "Order updated: " + order);
@@ -227,8 +246,13 @@ public class OrderService {
 		}
 	}
 
+	@Transactional
+	public void archiveOrder(WorkOrder order) {
+		log.info("Archive attempt: " + order);
+	}
+
 	private List<OrderDTO> wrapWorkCollectionInDTO(List<WorkOrder> entities) {
-		//TODO DB access optimization: read all involved users in one query, to avoid 3 separate reads per order
+		//TODO DB access optimization: read all involved users in one query to avoid 3 separate reads per order
 		List<OrderDTO> result = new ArrayList<>();
 		for (WorkOrder order : entities) {
 			result.add(wrapOrderInDTO(order));
@@ -270,8 +294,25 @@ public class OrderService {
 				.build();
 	}
 
+	private WorkOrder unwrapFullOrder(OrderDTO order) {
+		return WorkOrder.builder()
+				.id(order.getId())
+				.creationDate(order.getActualCreationDate())
+				.author(order.getAuthorLogin())
+				.manager(order.getManagerLogin())
+				.master(order.getMasterLogin())
+				.status(order.getActualStatus())
+				.category(order.getActualCategory())
+				.item(order.getItem())
+				.complaint(order.getComplaint())
+				.price(order.getPrice())
+				.managerComment(order.getManagerComment())
+				.masterComment(order.getMasterComment())
+				.build();
+	}
+
 	/**
-	 * As far as I could tell, there's no native way to check for it in java.<br /><br />
+	 * As far as I can tell, there's no native way to check for it in java.<br /><br />
 	 * Apache Commons has StringUtils.isEmpty(value), but I don't want to include it here.
 	 */
 	private boolean isEmptyOrNull(String value) {

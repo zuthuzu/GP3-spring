@@ -10,8 +10,8 @@ import java.util.Arrays;
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public class WorkingState extends AbstractState {
 	public WorkingState() {
+		setCurrentState(OrderStatus.WORKING);
 		setNextState(OrderStatus.READY);
-
 		setRequiredRole(RoleType.ROLE_MASTER);
 		//setRequiredFields(); //no required fields at this state
 		setAvailableFields(Arrays.asList("master_comment"));

@@ -10,6 +10,7 @@ import java.util.Arrays;
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public class ArchivedState extends AbstractState {
 	public ArchivedState() {
+		setCurrentState(OrderStatus.ARCHIVED);
 		setNextState(OrderStatus.ARCHIVED);
 		setRequiredRole(RoleType.ROLE_USER);
 		setRequiredFields(Arrays.asList("user_stars"));

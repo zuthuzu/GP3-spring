@@ -10,6 +10,7 @@ import java.util.Arrays;
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public class ReadyState extends AbstractState {
 	public ReadyState() {
+		setCurrentState(OrderStatus.READY);
 		setNextState(OrderStatus.ARCHIVED);
 		setRequiredRole(RoleType.ROLE_MANAGER);
 		setAvailableFields(Arrays.asList("manager_comment"));

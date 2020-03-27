@@ -196,7 +196,7 @@ public class PageController implements WebMvcConfigurer {
 		} else {
 			model.addAttribute("available", Collections.emptyList());
 			model.addAttribute("cancel", false);
-			model.addAttribute("readonly", false);
+			model.addAttribute("readonly", true);
 		}
 
 		return "order-details.html";
