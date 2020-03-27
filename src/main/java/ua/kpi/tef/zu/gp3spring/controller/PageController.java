@@ -2,8 +2,10 @@ package ua.kpi.tef.zu.gp3spring.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -23,6 +25,8 @@ import ua.kpi.tef.zu.gp3spring.entity.states.AbstractState;
 import ua.kpi.tef.zu.gp3spring.service.OrderService;
 import ua.kpi.tef.zu.gp3spring.service.UserService;
 
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServletRequest;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.Collections;
@@ -34,7 +38,7 @@ import java.util.Locale;
  */
 @Slf4j
 @Controller
-public class PageController implements WebMvcConfigurer {
+public class PageController implements WebMvcConfigurer, ErrorController {
 
 	private LanguageDTO languageSwitcher = new LanguageDTO();
 	private final UserService userService;
@@ -203,6 +207,19 @@ public class PageController implements WebMvcConfigurer {
 		}
 
 		return "order-details.html";
+	}
+
+	@Override
+	public String getErrorPath() {
+		return "/error";
+	}
+
+	@RequestMapping("/error")
+	public String displayError(Model model, HttpServletRequest request) {
+		insertLanguagesIntoModel(model);
+		model.addAttribute("user", utility.getCurrentUser());
+		model.addAttribute("errorCode", request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE));
+		return "error.html";
 	}
 
 	private String accessDeniedPage(Model model) {

@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<!--suppress HtmlUnknownAttribute -->
+<html xmlns:th="https://www.thymeleaf.org">
+<head>
+    <title th:text="#{general.title}">REPAIR</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/bootstrap-theme.css">
+</head>
+<body>
+<div class="container">
+    <div th:include="fragments/headers :: header-user" th:remove="tag"></div>
+
+    <div class="row">
+        <div class="col">
+            <br />
+        </div>
+    </div>
+
+    <div class="row bg-light">
+        <div class="col">
+            <h3 th:text="#{error.welcome}">{ERROR}</h3>
+            <h3 th:text="${errorCode}">{CODE}</h3>
+            <span th:text="#{error.general}" th:remove="tag">{something}</span>
+            <br /><br />
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <br />
+        </div>
+    </div>
+
+    <div th:include="fragments/footer :: footer"></div>
+</div>
+<script th:include="fragments/bootstrap :: js" th:remove="tag"></script>
+</body>
+</html>
