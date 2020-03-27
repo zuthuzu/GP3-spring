@@ -5,7 +5,6 @@ import lombok.Setter;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,7 +31,6 @@ public abstract class AbstractState {
 	 */
 	public boolean moveToArchive(boolean proceed) {
 		if (!proceed && isCancelable) return true;
-		List<OrderStatus> archived = Arrays.asList(OrderStatus.ARCHIVED, OrderStatus.CANCELLED);
-		return proceed && archived.contains(nextState) && !archived.contains(currentState);
+		return proceed && nextState.isArchived() && !currentState.isArchived();
 	}
 }

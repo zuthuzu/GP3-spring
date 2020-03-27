@@ -10,10 +10,7 @@ import javax.persistence.*;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
-@ToString
-
 @Entity
 @Table(name = "archive")
 public class ArchiveOrder extends WorkOrder {
@@ -22,4 +19,9 @@ public class ArchiveOrder extends WorkOrder {
 
 	@Column(name = "user_stars")
 	private int userStars;
+
+	public ArchiveOrder(String userComment, int userStars) {
+		this.userComment = userComment;
+		this.userStars = userStars;
+	}
 }

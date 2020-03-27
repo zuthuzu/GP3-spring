@@ -85,7 +85,7 @@ public class RedirectController {
 
 		try {
 			userService.saveNewUser(modelUser);
-		} catch (RegistrationException e) {
+		} catch (DatabaseException e) {
 			redirectAttributes.addFlashAttribute("user", modelUser);
 			redirectView.setUrl(e.isDuplicate() ? "/reg?duplicate" : "/reg?error");
 			return redirectView;
@@ -110,7 +110,7 @@ public class RedirectController {
 		modelOrder.setAuthor(utility.getCurrentUser().getLogin());
 		try {
 			orderService.saveNewOrder(modelOrder);
-		} catch (RegistrationException e) {
+		} catch (DatabaseException e) {
 			redirectAttributes.addFlashAttribute("newOrder", modelOrder);
 			redirectView.setUrl("/order?error");
 			return redirectView;

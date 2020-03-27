@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import ua.kpi.tef.zu.gp3spring.controller.RegistrationException;
+import ua.kpi.tef.zu.gp3spring.controller.DatabaseException;
 import ua.kpi.tef.zu.gp3spring.dto.UserDTO;
 import ua.kpi.tef.zu.gp3spring.dto.UserListDTO;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
@@ -58,32 +58,32 @@ public class UserService implements UserDetailsService {
 
 		try {
 			saveNewUser(rawAdminCredentials);
-		} catch (RegistrationException e) {
+		} catch (DatabaseException e) {
 			e.printStackTrace();
 		}
 	}
 
-	public void saveNewUser(User user) throws RegistrationException {
+	public void saveNewUser(User user) throws DatabaseException {
 		try {
 			userRepo.save(getUserWithPermissions(user));
 			log.info("New user created: " + user);
 		} catch (DataIntegrityViolationException e) {
-			RegistrationException registrationException = new RegistrationException(e);
+			DatabaseException databaseException = new DatabaseException(e);
 
 			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
 				//most likely, either login or email aren't unique
 				log.error(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
-				registrationException.setDuplicate(true);
+				databaseException.setDuplicate(true);
 			} else {
 				//e.printStackTrace();
 				log.error("Couldn't save a new user", e);
 			}
-			throw registrationException;
+			throw databaseException;
 
 		} catch (Exception e) {
 			//e.printStackTrace();
 			log.error("Couldn't save a new user", e);
-			throw new RegistrationException(e);
+			throw new DatabaseException(e);
 		}
 	}
 

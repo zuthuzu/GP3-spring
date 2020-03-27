@@ -3,8 +3,9 @@ package ua.kpi.tef.zu.gp3spring.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import ua.kpi.tef.zu.gp3spring.controller.RegistrationException;
+import ua.kpi.tef.zu.gp3spring.controller.DatabaseException;
 import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.ArchiveOrder;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
@@ -34,6 +35,9 @@ public class OrderService {
 
 	@Autowired
 	private UserService userService;
+
+	@Autowired
+	private TransactionService transactions;
 
 	@Autowired
 	public OrderService(OrderRepo orderRepository, ArchiveRepo archiveRepository) {
@@ -144,11 +148,15 @@ public class OrderService {
 
 		try {
 			if (state.moveToArchive(proceed)) {
-				archiveOrder(unwrapFullOrder(preparedOrder));
+				transactions.archiveOrder(unwrapFullOrder(preparedOrder));
+				log.info("Order archived: " + preparedOrder.toStringSkipEmpty());
 			} else {
 				saveOrder(unwrapFullOrder(preparedOrder));
+				log.info(preparedOrder.getActualStatus() == OrderStatus.PENDING ?
+						"New order created: " : "Order updated: " + preparedOrder.toStringSkipEmpty());
 			}
-		} catch (RegistrationException e) {
+		} catch (DatabaseException e) {
+			log.error(e.getMessage());
 			return false;
 		}
 
@@ -232,26 +240,19 @@ public class OrderService {
 		return wrapOrderInDTO(order);
 	}
 
-	public void saveNewOrder(OrderDTO order) throws RegistrationException {
+	public void saveNewOrder(OrderDTO order) throws DatabaseException {
 		saveOrder(unwrapNewOrder(order));
 	}
 
-	public void saveOrder(WorkOrder order) throws RegistrationException {
+	public void saveOrder(WorkOrder order) throws DatabaseException {
 		try {
 			orderRepo.save(order);
-			log.info(order.getStatus() == OrderStatus.PENDING ? "New order created: " : "Order updated: " + order);
 		} catch (Exception e) {
-			log.error("Couldn't save a new order", e);
-			throw new RegistrationException(e);
+			throw new DatabaseException("Couldn't save a new order", e);
 		}
 	}
 
-	@Transactional
-	public void archiveOrder(WorkOrder order) {
-		log.info("Archive attempt: " + order);
-	}
-
-	private List<OrderDTO> wrapWorkCollectionInDTO(List<WorkOrder> entities) {
+	private List<OrderDTO> wrapWorkCollectionInDTO(List<? extends WorkOrder> entities) {
 		//TODO DB access optimization: read all involved users in one query to avoid 3 separate reads per order
 		List<OrderDTO> result = new ArrayList<>();
 		for (WorkOrder order : entities) {
@@ -280,6 +281,15 @@ public class OrderService {
 				.build();
 
 		StateFactory.setState(result);
+		if (result.getActualStatus().isArchived()) {
+			try {
+				ArchiveOrder archiveOrder = (ArchiveOrder) order;
+				result.setUserComment(archiveOrder.getUserComment());
+				result.setUserStars(archiveOrder.getUserStars());
+			} catch (ClassCastException e) {
+				log.error("Bad order acquisition (not properly archived): " + order);
+			}
+		}
 		return result;
 	}
 
@@ -295,20 +305,25 @@ public class OrderService {
 	}
 
 	private WorkOrder unwrapFullOrder(OrderDTO order) {
-		return WorkOrder.builder()
-				.id(order.getId())
-				.creationDate(order.getActualCreationDate())
-				.author(order.getAuthorLogin())
-				.manager(order.getManagerLogin())
-				.master(order.getMasterLogin())
-				.status(order.getActualStatus())
-				.category(order.getActualCategory())
-				.item(order.getItem())
-				.complaint(order.getComplaint())
-				.price(order.getPrice())
-				.managerComment(order.getManagerComment())
-				.masterComment(order.getMasterComment())
-				.build();
+		WorkOrder result;
+		if (order.getActualStatus().isArchived()) {
+			result = new ArchiveOrder(order.getUserComment(), order.getUserStars());
+		} else {
+			result = new WorkOrder();
+		}
+		result.setId(order.getId());
+		result.setCreationDate(order.getActualCreationDate());
+		result.setAuthor(order.getAuthorLogin());
+		result.setManager(order.getManagerLogin());
+		result.setMaster(order.getMasterLogin());
+		result.setStatus(order.getActualStatus());
+		result.setCategory(order.getActualCategory());
+		result.setItem(order.getItem());
+		result.setComplaint(order.getComplaint());
+		result.setPrice(order.getPrice());
+		result.setManagerComment(order.getManagerComment());
+		result.setMasterComment(order.getMasterComment());
+		return result;
 	}
 
 	/**
