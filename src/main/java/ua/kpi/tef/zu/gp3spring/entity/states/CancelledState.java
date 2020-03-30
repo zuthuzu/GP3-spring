@@ -1,5 +1,6 @@
 package ua.kpi.tef.zu.gp3spring.entity.states;
 
+import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 
 import java.util.Arrays;
@@ -17,5 +18,11 @@ public class CancelledState extends AbstractState {
 		setAvailableFields(Arrays.asList("user_stars", "user_comment"));
 		setCancelable(false);
 		setButtonText("order.action.rate");
+	}
+
+	@Override
+	public void applyAvailableFields(OrderDTO to, OrderDTO from) {
+		to.setUserComment(!isEmptyOrNull(from.getUserComment()) ? from.getUserComment() : to.getUserComment());
+		to.setUserStars(from.getUserStars());
 	}
 }

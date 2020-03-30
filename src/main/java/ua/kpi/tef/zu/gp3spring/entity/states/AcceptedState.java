@@ -1,5 +1,6 @@
 package ua.kpi.tef.zu.gp3spring.entity.states;
 
+import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 
 import java.util.Arrays;
@@ -18,5 +19,10 @@ public class AcceptedState extends AbstractState {
 		setCancelable(true);
 		setPreCancelFields(Arrays.asList("master_comment"));
 		setButtonText("order.action.take");
+	}
+
+	@Override
+	public void applyAvailableFields(OrderDTO to, OrderDTO from) {
+		to.setMasterComment(!isEmptyOrNull(from.getMasterComment()) ? from.getMasterComment() : to.getMasterComment());
 	}
 }

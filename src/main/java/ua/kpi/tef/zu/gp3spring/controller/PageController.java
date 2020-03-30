@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.i18n.LocaleContextHolder;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -191,7 +190,6 @@ public class PageController implements WebMvcConfigurer, ErrorController {
 
 		setLocalFields(order);
 		model.addAttribute("updateOrder", order);
-
 		model.addAttribute("categories", utility.getLocalCategories());
 
 		AbstractState state = order.getLiveState();
@@ -216,9 +214,12 @@ public class PageController implements WebMvcConfigurer, ErrorController {
 
 	@RequestMapping("/error")
 	public String displayError(Model model, HttpServletRequest request) {
+		User currentUser = utility.getCurrentUser();
+		String errorCode = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE).toString();
+		log.warn("User " + currentUser.getLogin() + " has caused an error " + errorCode);
 		insertLanguagesIntoModel(model);
-		model.addAttribute("user", utility.getCurrentUser());
-		model.addAttribute("errorCode", request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE));
+		model.addAttribute("user", currentUser);
+		model.addAttribute("errorCode", errorCode);
 		return "error.html";
 	}
 
@@ -235,7 +236,7 @@ public class PageController implements WebMvcConfigurer, ErrorController {
 	}
 
 	private List<User> getAllUsers() {
-		return userService.getAllUsers().getUsers();
+		return userService.getAllUsers();
 	}
 
 	private List<OrderDTO> getActiveOrders() {
@@ -261,4 +262,3 @@ public class PageController implements WebMvcConfigurer, ErrorController {
 		order.setStatus(utility.getLocalizedText(order.getActualStatus().toString()));
 	}
 }
-

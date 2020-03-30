@@ -128,21 +128,13 @@ public class OrderService {
 		However, since change hasn't occurred yet, dbOrder should have the same state.
 		This means we have to postpone these checks until after we've performed a DB read*/
 		AbstractState state = dbOrder.getLiveState();
-		if (!proceed && !state.isCancelable()) {
-			log.error("Illegal cancel attempt in update request: " + modelOrder.toStringSkipEmpty());
-			return false;
-		}
-		if (initiator.getRole() != state.getRequiredRole()) {
-			log.error("Illegal user role in update request: " + modelOrder.toStringSkipEmpty());
-			return false;
-		}
-		if (!verifyRequiredFields(modelOrder, proceed ? state.getRequiredFields() : state.getPreCancelFields())) {
+		if (!verifyRequest(modelOrder, state, initiator, proceed)) {
 			return false;
 		}
 
 		modelOrder.setActualStatus(proceed ? state.getNextState() : OrderStatus.CANCELLED); //smuggling a parameter in DTO
 
-		OrderDTO preparedOrder = assembleOrder(dbOrder, modelOrder, initiator);
+		OrderDTO preparedOrder = state.assembleOrder(dbOrder, modelOrder, initiator);
 
 		try {
 			if (state.moveToArchive(proceed)) {
@@ -163,70 +155,16 @@ public class OrderService {
 		return true;
 	}
 
-	private boolean verifyRequiredFields(OrderDTO modelOrder, List<String> fields) {
-		for (String field : fields) {
-			switch (field) {
-				case "price":
-					if (modelOrder.getPrice() == 0) {
-						log.error("Incomplete data: missing price in update request: " + modelOrder.toStringSkipEmpty());
-						return false;
-					}
-					break;
-				case "manager_comment":
-					if (isEmptyOrNull(modelOrder.getManagerComment())) {
-						log.error("Incomplete data: missing manager comment in update request: " + modelOrder.toStringSkipEmpty());
-						return false;
-					}
-					break;
-				case "master_comment":
-					if (isEmptyOrNull(modelOrder.getMasterComment())) {
-						log.error("Incomplete data: missing master comment in update request: " + modelOrder.toStringSkipEmpty());
-						return false;
-					}
-					break;
-				case "user_stars":
-					if (modelOrder.getUserStars() <= 0 || modelOrder.getUserStars() > 5) {
-						log.error("Incomplete data: missing user rating in update request: " + modelOrder.toStringSkipEmpty());
-						return false;
-					}
-					break;
-			}
+	private boolean verifyRequest(OrderDTO modelOrder, AbstractState state, User initiator, boolean proceed) {
+		if (!proceed && !state.isCancelable()) {
+			log.error("Illegal cancel attempt in update request: " + modelOrder.toStringSkipEmpty());
+			return false;
 		}
-		return true;
-	}
-
-	/**
-	 * Carefully applies front end data onto DB data where it is necessitated by the current state.
-	 *
-	 * @param dbOrder    order the way it's currently present in DB
-	 * @param modelOrder order the way it arrived from frontend
-	 * @param initiator  user who initiated the update
-	 * @return an entity ready for updating into DB
-	 */
-	private OrderDTO assembleOrder(OrderDTO dbOrder, OrderDTO modelOrder, User initiator) {
-		AbstractState state = dbOrder.getLiveState();
-		List<String> availableFields = state.getAvailableFields();
-
-		return OrderDTO.builder()
-				.id(dbOrder.getId())
-				.actualCreationDate(dbOrder.getActualCreationDate())
-				.authorLogin(dbOrder.getAuthorLogin())
-				.managerLogin((state.getRequiredRole() == RoleType.ROLE_MANAGER && isEmptyOrNull(dbOrder.getManagerLogin()))
-						? initiator.getLogin() : dbOrder.getManagerLogin()) //first authorised initiator gets recorded
-				.masterLogin((state.getRequiredRole() == RoleType.ROLE_MASTER && isEmptyOrNull(dbOrder.getMasterLogin()))
-						? initiator.getLogin() : dbOrder.getMasterLogin()) //first authorised initiator gets recorded
-				.actualStatus(modelOrder.getActualStatus()) //by now it's set as either state.getNextState() or CANCELLED
-				.isArchived(dbOrder.isArchived())
-				.actualCategory((availableFields.contains("category") && modelOrder.getActualCategory() != null)
-						? modelOrder.getActualCategory() : dbOrder.getActualCategory()) //this field doesn't get checked well enough previously
-				.item(availableFields.contains("item") ? modelOrder.getItem() : dbOrder.getItem())
-				.complaint(availableFields.contains("complaint") ? modelOrder.getComplaint() : dbOrder.getComplaint())
-				.price(availableFields.contains("price") ? modelOrder.getPrice() : dbOrder.getPrice())
-				.managerComment(availableFields.contains("manager_comment") ? modelOrder.getManagerComment() : dbOrder.getManagerComment())
-				.masterComment(availableFields.contains("master_comment") ? modelOrder.getMasterComment() : dbOrder.getMasterComment())
-				.userComment(availableFields.contains("user_comment") ? modelOrder.getUserComment() : dbOrder.getUserComment())
-				.userStars(availableFields.contains("user_stars") ? modelOrder.getUserStars() : dbOrder.getUserStars())
-				.build();
+		if (initiator.getRole() != state.getRequiredRole()) {
+			log.error("Illegal user role in update request: " + modelOrder.toStringSkipEmpty());
+			return false;
+		}
+		return state.verifyRequiredFields(modelOrder, proceed);
 	}
 
 	public OrderDTO getOrderById(String id) throws IllegalArgumentException {
@@ -237,7 +175,8 @@ public class OrderService {
 			throw new IllegalArgumentException("Can't convert ID " + id + " to a number.");
 		}
 
-		WorkOrder order = orderRepo.findById(realID).orElseThrow(() -> new IllegalArgumentException("Can't find order with ID " + id));
+		WorkOrder order = orderRepo.findById(realID).orElseThrow(() ->
+				new IllegalArgumentException("Can't find order with ID " + id));
 
 		return wrapOrderInDTO(order, getUserCache(Arrays.asList(order)));
 	}
@@ -288,7 +227,7 @@ public class OrderService {
 			userCache.put(order.getMaster(), null);
 		}
 
-		List<User> userList = userService.loadUsersByLoginCollection(userCache.keySet()).getUsers();
+		List<User> userList = userService.loadUsersByLoginCollection(userCache.keySet());
 		userList.forEach(u -> userCache.put(u.getLogin(), u.getName()));
 		return userCache;
 	}
@@ -357,13 +296,5 @@ public class OrderService {
 		result.setManagerComment(order.getManagerComment());
 		result.setMasterComment(order.getMasterComment());
 		return result;
-	}
-
-	/**
-	 * As far as I can tell, there's no native way to check for it in java.<br /><br />
-	 * Apache Commons has StringUtils.isEmpty(value), but I don't want to include it here.
-	 */
-	private boolean isEmptyOrNull(String value) {
-		return value == null || value.isEmpty();
 	}
 }

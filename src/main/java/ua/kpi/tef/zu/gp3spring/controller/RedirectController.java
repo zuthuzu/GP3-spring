@@ -11,7 +11,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.ItemCategory;
-import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 import ua.kpi.tef.zu.gp3spring.entity.User;
 import ua.kpi.tef.zu.gp3spring.service.OrderService;
 import ua.kpi.tef.zu.gp3spring.service.UserService;

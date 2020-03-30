@@ -11,13 +11,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ua.kpi.tef.zu.gp3spring.controller.DatabaseException;
 import ua.kpi.tef.zu.gp3spring.dto.UserDTO;
-import ua.kpi.tef.zu.gp3spring.dto.UserListDTO;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 import ua.kpi.tef.zu.gp3spring.entity.User;
 import ua.kpi.tef.zu.gp3spring.repository.UserRepo;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -160,11 +160,11 @@ public class UserService implements UserDetailsService {
 		}
 	}
 
-	public UserListDTO loadUsersByLoginCollection(Set<String> filter) {
-		return new UserListDTO(userRepo.findByLoginIn(filter));
+	public List<User> loadUsersByLoginCollection(Set<String> filter) {
+		return userRepo.findByLoginIn(filter);
 	}
 
-	public UserListDTO getAllUsers() {
-		return new UserListDTO(userRepo.findAll());
+	public List<User> getAllUsers() {
+		return userRepo.findAll();
 	}
 }

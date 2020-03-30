@@ -62,7 +62,7 @@
                     </div>
                     <div class="form-group">
                         <label for="status" th:text="#{order.price}">{Price}</label>
-                        <input class="form-control" id="price" name="price" th:field="*{price}" th:placeholder="#{order.none}" type="number" min="1"
+                        <input class="form-control" id="price" name="price" th:field="*{price}" th:placeholder="#{order.none}" type="number" min="0"
                                required th:disabled="!${#lists.contains(available, 'price')}">
                     </div>
                     <div class="form-group">
@@ -70,13 +70,13 @@
                         <input class="form-control" id="status" name="status" th:field="*{status}" th:placeholder="#{order.status}" disabled>
                     </div>
                     <div class="form-group">
-                        <label for="managerComment" th:text="#{order.manager_comment}">{What's up with it}</label>
+                        <label for="managerComment" th:text="#{order.manager_comment}">{Manager comment}</label>
                         <textarea class="form-control" id="managerComment" name="managerComment" th:field="*{managerComment}" rows="2"
                                   th:disabled="!${#lists.contains(available, 'manager_comment')}">
                         </textarea>
                     </div>
                     <div class="form-group">
-                        <label for="masterComment" th:text="#{order.master_comment}">{What's up with it}</label>
+                        <label for="masterComment" th:text="#{order.master_comment}">{Master comment}</label>
                         <textarea class="form-control" id="masterComment" name="masterComment" th:field="*{masterComment}" rows="2"
                                   th:disabled="!${#lists.contains(available, 'master_comment')}">
                         </textarea>
@@ -110,7 +110,7 @@
                         </div>
                     </div>
                     <div class="form-group" th:if="*{archived}">
-                        <label for="userComment" th:text="#{order.user_comment}">{Price}</label>
+                        <label for="userComment" th:text="#{order.user_comment}">{User comment}</label>
                         <textarea class="form-control" id="userComment" name="userComment" th:field="*{userComment}" rows="2"
                                   th:disabled="!${#lists.contains(available, 'user_comment')}">
                         </textarea>
