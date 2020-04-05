@@ -42,14 +42,13 @@ public class PageController implements WebMvcConfigurer, ErrorController {
 	private LanguageDTO languageSwitcher = new LanguageDTO();
 	private final UserService userService;
 	private final OrderService orderService;
+	private final ControllerUtility utility;
 
 	@Autowired
-	private ControllerUtility utility;
-
-	@Autowired
-	public PageController(UserService userService, OrderService orderService) {
+	public PageController(UserService userService, OrderService orderService, ControllerUtility utility) {
 		this.userService = userService;
 		this.orderService = orderService;
+		this.utility = utility;
 	}
 
 	@Bean

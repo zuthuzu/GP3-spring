@@ -28,19 +28,18 @@ public class OrderService {
 	private final static String ACTION_PROCEED = "proceed";
 	private final static String ACTION_CANCEL = "cancel";
 
-	private OrderRepo orderRepo;
-	private ArchiveRepo archiveRepo;
+	private final OrderRepo orderRepo;
+	private final ArchiveRepo archiveRepo;
+	private final UserService userService;
+	private final TransactionService transactions;
 
 	@Autowired
-	private UserService userService;
-
-	@Autowired
-	private TransactionService transactions;
-
-	@Autowired
-	public OrderService(OrderRepo orderRepository, ArchiveRepo archiveRepository) {
+	public OrderService(OrderRepo orderRepository, ArchiveRepo archiveRepository,
+						UserService userService, TransactionService transactionService) {
 		this.orderRepo = orderRepository;
 		this.archiveRepo = archiveRepository;
+		this.userService = userService;
+		this.transactions = transactionService;
 	}
 
 	/**

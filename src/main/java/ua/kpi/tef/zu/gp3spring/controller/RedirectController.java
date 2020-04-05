@@ -23,14 +23,13 @@ import ua.kpi.tef.zu.gp3spring.service.UserService;
 public class RedirectController {
 	private final UserService userService;
 	private final OrderService orderService;
+	private final ControllerUtility utility;
 
 	@Autowired
-	private ControllerUtility utility;
-
-	@Autowired
-	public RedirectController(UserService userService, OrderService orderService) {
+	public RedirectController(UserService userService, OrderService orderService, ControllerUtility utility) {
 		this.userService = userService;
 		this.orderService = orderService;
+		this.utility = utility;
 	}
 
 	//Admin only tool: changes user roles

@@ -21,9 +21,13 @@ import java.util.List;
  */
 @Component
 public class ControllerUtility {
-	@Autowired
-	private MessageSource messageSource;
+	private final MessageSource messageSource;
 	private MessageSourceAccessor currentMessages;
+
+	@Autowired
+	public ControllerUtility(MessageSource messageSource) {
+		this.messageSource = messageSource;
+	}
 
 	public void resetCurrentMessages() {
 		currentMessages = new MessageSourceAccessor(messageSource);

@@ -17,6 +17,15 @@ import ua.kpi.tef.zu.gp3spring.service.UserService;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+	private final UserService userService;
+	private final PasswordEncoder localEncoder;
+
+	@Autowired
+	public SecurityConfig(UserService userService, PasswordEncoder localEncoder) {
+		this.userService = userService;
+		this.localEncoder = localEncoder;
+	}
+
 	@Override
 	protected void configure(HttpSecurity http) throws Exception {
 		http
@@ -33,14 +42,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 					.logoutRequestMatcher(new AntPathRequestMatcher("/logout")).permitAll();
 	}
 
-	@Autowired
-	private UserService userService;
-
-	@Autowired
-	public PasswordEncoder localEncoder;
-
-	@Autowired
 	public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
 		auth.userDetailsService(userService).passwordEncoder(localEncoder);
 	}
+
+
 }

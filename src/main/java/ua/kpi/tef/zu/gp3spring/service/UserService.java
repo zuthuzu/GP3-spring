@@ -28,28 +28,29 @@ import java.util.Set;
 @Slf4j
 @Service
 public class UserService implements UserDetailsService {
-	private UserRepo userRepo;
+	private final static String SYSADMIN = "admin";
+	private final static String DEFAULT_EMAIL_DOMAIN = "@null";
+	private final UserRepo userRepo;
+	private final PasswordEncoder localEncoder;
 
 	@Autowired
-	private PasswordEncoder localEncoder;
-
-	@Autowired
-	public UserService(UserRepo userRepository) {
+	public UserService(UserRepo userRepository, PasswordEncoder localEncoder) {
 		this.userRepo = userRepository;
+		this.localEncoder = localEncoder;
 	}
 
 	@PostConstruct
 	private void createSystemAdmin() {
-		if (userRepo.findByLogin("admin").isPresent()) {
+		if (userRepo.findByLogin(SYSADMIN).isPresent()) {
 			return;
 		}
 
 		User rawAdminCredentials = User.builder()
 				.name("sysadmin")
-				.login("admin")
-				.phone("0504474405") //maybe replace with some placeholder or default contact?
-				.email("admin@zu.tef.kpi.ua")
-				.password("admin")
+				.login(SYSADMIN)
+				.phone("0000000000")
+				.email(SYSADMIN + DEFAULT_EMAIL_DOMAIN)
+				.password(SYSADMIN) //
 				.role(RoleType.ROLE_ADMIN)
 				.build();
 
@@ -83,7 +84,7 @@ public class UserService implements UserDetailsService {
 	}
 
 	public boolean updateRole(String login, String role) {
-		if (login.equals("admin")) {
+		if (login.equals(SYSADMIN)) {
 			return false;
 		}
 
@@ -122,7 +123,7 @@ public class UserService implements UserDetailsService {
 				.name(user.getName())
 				.login(user.getLogin())
 				.phone(cleanPhoneNumber(user.getPhone()))
-				.email(user.getEmail().isEmpty() ? user.getLogin() + "@null" : user.getEmail()) //a makeshift placeholder
+				.email(user.getEmail().isEmpty() ? user.getLogin() + DEFAULT_EMAIL_DOMAIN : user.getEmail())
 				.password(localEncoder.encode(user.getPassword()))
 				.role(user.getRole() == null ? RoleType.ROLE_USER : user.getRole())
 				.accountNonExpired(true)

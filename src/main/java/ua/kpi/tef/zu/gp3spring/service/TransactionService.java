@@ -15,8 +15,8 @@ import ua.kpi.tef.zu.gp3spring.repository.OrderRepo;
 @Service
 @Transactional(rollbackFor = DatabaseException.class)
 public class TransactionService {
-	private OrderRepo orderRepo;
-	private ArchiveRepo archiveRepo;
+	private final OrderRepo orderRepo;
+	private final ArchiveRepo archiveRepo;
 
 	@Autowired
 	public TransactionService(OrderRepo orderRepository, ArchiveRepo archiveRepository) {
