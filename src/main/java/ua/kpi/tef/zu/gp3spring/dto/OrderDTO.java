@@ -23,11 +23,11 @@ public class OrderDTO {
 	private long id;
 	private String creationDate; //representation in user's locale, refreshed at controller
 	private LocalDate actualCreationDate; //value from DB
-	private String author;
+	private String author; //displayed name, loaded separately by login
 	private String authorLogin; //value from DB
-	private String manager;
+	private String manager; //displayed name, loaded separately by login
 	private String managerLogin; //value from DB
-	private String master;
+	private String master; //displayed name, loaded separately by login
 	private String masterLogin; //value from DB
 	private String category; //representation in user's locale, refreshed at controller
 	private ItemCategory actualCategory; //value from DB
@@ -42,8 +42,8 @@ public class OrderDTO {
 	private String masterComment;
 	private String userComment;
 	private int userStars;
-	private String action;
-	private User initiator;
+	private String action; //when received from frontend, determines the direction of state change
+	private User initiator; //user which initiated state change request
 
 	public final static String ACTION_PROCEED = "proceed";
 	public final static String ACTION_CANCEL = "cancel";

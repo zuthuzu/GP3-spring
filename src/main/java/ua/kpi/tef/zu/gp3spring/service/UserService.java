@@ -57,65 +57,49 @@ public class UserService implements UserDetailsService {
 		try {
 			saveNewUser(rawAdminCredentials);
 		} catch (DatabaseException e) {
-			e.printStackTrace();
+			log.error(e.getMessage());
 		}
 	}
 
-	public void saveNewUser(User user) throws DatabaseException {
-		try {
-			userRepo.save(getUserWithPermissions(user));
-			log.info("New user created: " + user);
-		} catch (DataIntegrityViolationException e) {
-			DatabaseException databaseException = new DatabaseException(e);
+	public void updateRole(String login, String role) throws DatabaseException, IllegalArgumentException {
+		if (login.equals(SYSADMIN)) throw new IllegalArgumentException("Attempt to modify a protected user");
 
+		RoleType actualRole = RoleType.valueOf(role);
+		User user = userRepo.findByLogin(login).orElseThrow(() ->
+				new IllegalArgumentException("Login " + login + " not found."));
+
+		if (user.getRole() == actualRole) return;
+
+		user.setRole(actualRole);
+		saveExistingUser(user);
+	}
+
+	public void saveExistingUser(User user) throws DatabaseException {
+		saveUser(user);
+		log.info("User " + user.getLogin() + " updated successfully. Role is now " + user.getRole());
+	}
+
+	public void saveNewUser(User user) throws DatabaseException {
+		saveUser(getUserWithPermissions(user));
+		log.info("New user created: " + user);
+	}
+
+	private void saveUser(User user) throws DatabaseException {
+		try {
+			userRepo.save(user);
+		} catch (DataIntegrityViolationException e) {
+			DatabaseException databaseException = new DatabaseException("Couldn't save a user: " + user, e);
 			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
 				//most likely, either login or email aren't unique
+				//TODO: proper check which one of those is it
 				log.error(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
 				databaseException.setDuplicate(true);
-			} else {
-				log.error("Couldn't save a new user", e);
 			}
 			throw databaseException;
 
 		} catch (Exception e) {
-			log.error("Couldn't save a new user", e);
-			throw new DatabaseException(e);
+			throw new DatabaseException("Couldn't save a user: " + user, e);
 		}
-	}
-
-	public boolean updateRole(String login, String role) {
-		if (login.equals(SYSADMIN)) {
-			return false;
-		}
-
-		RoleType actualRole;
-		try {
-			actualRole = RoleType.valueOf(role);
-		} catch (IllegalArgumentException e) {
-			return false;
-		}
-
-		Optional<User> maybeUser = userRepo.findByLogin(login);
-		if (!maybeUser.isPresent()) {
-			return false;
-		}
-		User user = maybeUser.get();
-
-		if (user.getRole() == actualRole) {
-			return true;
-		}
-
-		user.setRole(actualRole);
-
-		try {
-			userRepo.save(user);
-			log.info("User role updated successfully. User " + user.getLogin() + " is now " + user.getRole());
-		} catch (Exception e) {
-			log.error("Couldn't update user role", e);
-			return false;
-		}
-
-		return true;
 	}
 
 	private User getUserWithPermissions(User user) {
@@ -148,7 +132,7 @@ public class UserService implements UserDetailsService {
 	@Override
 	public UserDetails loadUserByUsername(@NotNull String username) throws UsernameNotFoundException {
 		return new UserDTO(userRepo.findByLogin(username).orElseThrow(() ->
-				new UsernameNotFoundException("login " + username + " not found.")));
+				new UsernameNotFoundException("Login " + username + " not found.")));
 	}
 
 	public String getUsernameByLogin(String login) {

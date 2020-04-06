@@ -38,7 +38,6 @@ import java.util.Locale;
 @Slf4j
 @Controller
 public class PageController implements WebMvcConfigurer, ErrorController {
-
 	private LanguageDTO languageSwitcher = new LanguageDTO();
 	private final UserService userService;
 	private final OrderService orderService;

@@ -39,17 +39,19 @@ public class RedirectController {
 								@RequestParam(value = "role", required = false) String role) {
 
 		RedirectView redirectView = new RedirectView();
-
 		if (login == null || role == null) {
 			redirectView.setUrl("/lobby?error");
 			return redirectView;
 		}
 
 		log.info(utility.getCurrentUser().getLogin() + " has initiated a role change: user " + login + " to role " + role);
-
-		boolean howItWent = userService.updateRole(login, role);
-
-		redirectView.setUrl("/lobby?" + (howItWent ? "success" : "error"));
+		try {
+			userService.updateRole(login, role);
+			redirectView.setUrl("/lobby?success");
+		} catch (DatabaseException | IllegalArgumentException e) {
+			log.error(e.getMessage());
+			redirectView.setUrl("/lobby?error");
+		}
 		return redirectView;
 	}
 
@@ -79,7 +81,7 @@ public class RedirectController {
 
 	@RequestMapping("/neworder")
 	public RedirectView newOrder(@ModelAttribute OrderDTO modelOrder, RedirectAttributes redirectAttributes) {
-		log.info("Obtained new order credentials from front end: " + modelOrder.toStringSkipEmpty());
+		log.info("Obtained new order request from front end: " + modelOrder.toStringSkipEmpty());
 
 		RedirectView redirectView = new RedirectView();
 

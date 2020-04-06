@@ -98,7 +98,7 @@ public class OrderService {
 	/**
 	 * Primary logic that invokes the order state mechanism.<br />
 	 * Preparation and support for state change.<br />
-	 * Verifies data retrieved from front end before passing it to the primary logic.
+	 * Verifies data retrieved from front end, then passes it to the primary logic.
 	 *
 	 * @param modelOrder order the way it arrived from frontend, + initiator (user who calls it)
 	 */
@@ -153,13 +153,13 @@ public class OrderService {
 			try {
 				archiveRepo.save(archiveOrder);
 			} catch (Exception e) {
-				throw new DatabaseException("Couldn't save an order", e);
+				throw new DatabaseException("Couldn't save an order: " + order, e);
 			}
 		} else {
 			try {
 				orderRepo.save(order);
 			} catch (Exception e) {
-				throw new DatabaseException("Couldn't save an order", e);
+				throw new DatabaseException("Couldn't save an order: " + order, e);
 			}
 		}
 	}

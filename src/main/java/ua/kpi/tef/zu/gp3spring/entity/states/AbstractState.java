@@ -6,7 +6,6 @@ import lombok.extern.slf4j.Slf4j;
 import ua.kpi.tef.zu.gp3spring.controller.DatabaseException;
 import ua.kpi.tef.zu.gp3spring.dto.OrderDTO;
 import ua.kpi.tef.zu.gp3spring.entity.RoleType;
-import ua.kpi.tef.zu.gp3spring.entity.User;
 import ua.kpi.tef.zu.gp3spring.service.OrderService;
 
 import java.util.ArrayList;
