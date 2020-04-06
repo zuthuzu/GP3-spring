@@ -25,9 +25,6 @@ import java.util.*;
 @Slf4j
 @Service
 public class OrderService {
-	private final static String ACTION_PROCEED = "proceed";
-	private final static String ACTION_CANCEL = "cancel";
-
 	private final OrderRepo orderRepo;
 	private final ArchiveRepo archiveRepo;
 	private final UserService userService;
@@ -103,67 +100,13 @@ public class OrderService {
 	 * Preparation and support for state change.<br />
 	 * Verifies data retrieved from front end before passing it to the primary logic.
 	 *
-	 * @param modelOrder order the way it arrived from frontend
-	 * @param initiator  user who initiated the update
-	 * @return success of the operation
+	 * @param modelOrder order the way it arrived from frontend, + initiator (user who calls it)
 	 */
-	public boolean updateOrder(OrderDTO modelOrder, User initiator) {
-		if (!modelOrder.getAction().equals(ACTION_PROCEED) && !modelOrder.getAction().equals(ACTION_CANCEL)) {
-			log.error("Illegal action in update request: " + modelOrder.toStringSkipEmpty());
-			return false;
-		}
-		boolean proceed = modelOrder.getAction().equals(ACTION_PROCEED); //false == cancel
-
-		OrderDTO dbOrder;
-		try {
-			dbOrder = getOrderById(String.valueOf(modelOrder.getId()));
-		} catch (IllegalArgumentException e) {
-			log.error(e.getMessage());
-			return false;
-		}
-
-		/*modelOrder that we obtained from frontend has only the barest minimum of fields
-		Meaning no live state assigned, and no status at all, in fact
-		However, since change hasn't occurred yet, dbOrder should have the same state.
-		This means we have to postpone these checks until after we've performed a DB read*/
+	public void updateOrder(OrderDTO modelOrder) throws DatabaseException, IllegalArgumentException {
+		OrderDTO dbOrder = getOrderById(String.valueOf(modelOrder.getId()));
 		AbstractState state = dbOrder.getLiveState();
-		if (!verifyRequest(modelOrder, state, initiator, proceed)) {
-			return false;
-		}
-
-		modelOrder.setActualStatus(proceed ? state.getNextState() : OrderStatus.CANCELLED); //smuggling a parameter in DTO
-
-		OrderDTO preparedOrder = state.assembleOrder(dbOrder, modelOrder, initiator);
-
-		try {
-			if (state.moveToArchive(proceed)) {
-				transactions.archiveOrder(unwrapFullOrder(preparedOrder));
-				log.info("Order archived: " + preparedOrder.toStringSkipEmpty());
-			} else {
-				saveOrder(unwrapFullOrder(preparedOrder));
-				log.info(preparedOrder.getActualStatus() == OrderStatus.PENDING ?
-						"New order created: " : (preparedOrder.isArchived() ?
-						"Archived order updated: " : "Order updated: ")
-						+ preparedOrder.toStringSkipEmpty());
-			}
-		} catch (DatabaseException e) {
-			log.error(e.getMessage());
-			return false;
-		}
-
-		return true;
-	}
-
-	private boolean verifyRequest(OrderDTO modelOrder, AbstractState state, User initiator, boolean proceed) {
-		if (!proceed && !state.isCancelable()) {
-			log.error("Illegal cancel attempt in update request: " + modelOrder.toStringSkipEmpty());
-			return false;
-		}
-		if (initiator.getRole() != state.getRequiredRole()) {
-			log.error("Illegal user role in update request: " + modelOrder.toStringSkipEmpty());
-			return false;
-		}
-		return state.verifyRequiredFields(modelOrder, proceed);
+		state.verifyRequest(modelOrder);
+		state.processOrder(this, state.assembleOrder(dbOrder, modelOrder));
 	}
 
 	public OrderDTO getOrderById(String id) throws IllegalArgumentException {
@@ -180,12 +123,25 @@ public class OrderService {
 		return wrapOrderInDTO(order, getUserCache(Arrays.asList(order)));
 	}
 
-	public void saveNewOrder(OrderDTO order) throws DatabaseException {
-		saveOrder(unwrapNewOrder(order));
+	public void archiveOrder(OrderDTO order) throws DatabaseException {
+		transactions.archiveOrder(unwrapFullOrder(order));
+		log.info("Order archived: " + order.toStringSkipEmpty());
 	}
 
-	public void saveOrder(WorkOrder order) throws DatabaseException {
-		if (order.getStatus().isArchived()) {
+	public void saveNewOrder(OrderDTO order) throws DatabaseException {
+		saveOrder(unwrapNewOrder(order));
+		log.info("New order created: " + order.toStringSkipEmpty());
+	}
+
+	public void saveExistingOrder(OrderDTO order) throws DatabaseException {
+		saveOrder(unwrapFullOrder(order));
+		log.info((order.getActualStatus().isArchived() ? "Archived order updated: " : "Order updated: ") +
+				order.toStringSkipEmpty());
+	}
+
+	private void saveOrder(WorkOrder order) throws DatabaseException {
+		OrderStatus status = order.getStatus();
+		if (status.isArchived()) {
 			ArchiveOrder archiveOrder;
 
 			try {
@@ -217,7 +173,9 @@ public class OrderService {
 		return result;
 	}
 
-	/** Without this cache wrapWorkCollectionInDTO would've performed 3 separate DB reads for each order*/
+	/**
+	 * Without this cache wrapWorkCollectionInDTO would've performed 3 separate DB reads for each order
+	 */
 	private Map<String, String> getUserCache(List<? extends WorkOrder> entities) {
 		Map<String, String> userCache = new HashMap<>();
 		for (WorkOrder order : entities) {

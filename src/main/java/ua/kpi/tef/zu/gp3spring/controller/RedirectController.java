@@ -41,7 +41,7 @@ public class RedirectController {
 		RedirectView redirectView = new RedirectView();
 
 		if (login == null || role == null) {
-			redirectView.setUrl("/users?error");
+			redirectView.setUrl("/lobby?error");
 			return redirectView;
 		}
 
@@ -49,7 +49,7 @@ public class RedirectController {
 
 		boolean howItWent = userService.updateRole(login, role);
 
-		redirectView.setUrl("/users?" + (howItWent ? "success" : "error"));
+		redirectView.setUrl("/lobby?" + (howItWent ? "success" : "error"));
 		return redirectView;
 	}
 
@@ -89,6 +89,7 @@ public class RedirectController {
 			return redirectView;
 		}
 
+		modelOrder.setInitiator(utility.getCurrentUser());
 		modelOrder.setAuthor(utility.getCurrentUser().getLogin());
 		try {
 			orderService.saveNewOrder(modelOrder);
@@ -107,7 +108,14 @@ public class RedirectController {
 		log.info("Order update request from front end: " + modelOrder.toStringSkipEmpty());
 		RedirectView redirectView = new RedirectView();
 		restoreCategoryFromLocalView(modelOrder);
-		redirectView.setUrl(orderService.updateOrder(modelOrder, utility.getCurrentUser()) ? "/lobby?success" : "lobby?error");
+		modelOrder.setInitiator(utility.getCurrentUser());
+		try {
+			orderService.updateOrder(modelOrder);
+			redirectView.setUrl("/lobby?success");
+		} catch (DatabaseException | IllegalArgumentException e) {
+			log.error(e.getMessage());
+			redirectView.setUrl("/lobby?error");
+		}
 		return redirectView;
 	}
 

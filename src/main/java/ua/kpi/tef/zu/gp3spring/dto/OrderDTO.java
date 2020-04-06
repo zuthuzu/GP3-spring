@@ -2,6 +2,7 @@ package ua.kpi.tef.zu.gp3spring.dto;
 
 import lombok.*;
 import ua.kpi.tef.zu.gp3spring.entity.ItemCategory;
+import ua.kpi.tef.zu.gp3spring.entity.User;
 import ua.kpi.tef.zu.gp3spring.entity.states.AbstractState;
 import ua.kpi.tef.zu.gp3spring.entity.states.OrderStatus;
 
@@ -42,6 +43,14 @@ public class OrderDTO {
 	private String userComment;
 	private int userStars;
 	private String action;
+	private User initiator;
+
+	public final static String ACTION_PROCEED = "proceed";
+	public final static String ACTION_CANCEL = "cancel";
+
+	public boolean proceed() {
+		return action.equals(ACTION_PROCEED);
+	}
 
 	public String toStringSkipEmpty() {
 		return "OrderDTO{" +
@@ -61,13 +70,14 @@ public class OrderDTO {
 				(Objects.nonNull(complaint) ? ", complaint='" + complaint + '\'' : "") +
 				(Objects.nonNull(status) ? ", status='" + status + '\'' : "") +
 				(Objects.nonNull(actualStatus) ? ", actualStatus='" + actualStatus + '\'' : "") +
-				(Objects.nonNull(liveState) ? ", liveState='" + liveState + '\'' : "") +
+				(Objects.nonNull(liveState) ? ", liveState='" + liveState.getCurrentState() + '\'' : "") +
 				(price != 0 ? ", price='" + price + '\'' : "") +
 				(Objects.nonNull(managerComment) ? ", managerComment='" + managerComment + '\'' : "") +
 				(Objects.nonNull(masterComment) ? ", masterComment='" + masterComment + '\'' : "") +
 				(Objects.nonNull(userComment) ? ", userComment='" + userComment + '\'' : "") +
 				(userStars != 0 ? ", userStars='" + userStars + '\'' : "") +
 				(Objects.nonNull(action) ? ", action='" + action + '\'' : "") +
+				(Objects.nonNull(initiator) ? ", initiator='" + initiator.getLogin() + '\'' : "") +
 				'}';
 	}
 }
