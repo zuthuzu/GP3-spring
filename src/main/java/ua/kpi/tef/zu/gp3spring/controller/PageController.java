@@ -165,12 +165,7 @@ public class PageController implements WebMvcConfigurer, ErrorController {
 	public String viewOrder(Model model,
 							@RequestParam(value = "id", required = false) String id) {
 
-		if (id == null) {
-			return accessDeniedPage(model);
-		}
-
 		OrderDTO order;
-
 		try {
 			order = orderService.getOrderById(id);
 		} catch (IllegalArgumentException e) {

@@ -9,10 +9,10 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>ua.kpi.tef.zu</groupId>
-	<artifactId>webtest</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>webtest</name>
-	<description>A non-specific web test application</description>
+	<artifactId>GP3-spring</artifactId>
+	<version>0.3.1-SNAPSHOT</version>
+	<name>GP3-spring</name>
+	<description>Graduation Project T3: Spring Boot version</description>
 
 	<properties>
 		<java.version>1.8</java.version>

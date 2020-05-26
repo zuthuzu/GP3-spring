@@ -18,7 +18,6 @@ import ua.kpi.tef.zu.gp3spring.repository.UserRepo;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -88,14 +87,14 @@ public class UserService implements UserDetailsService {
 		try {
 			userRepo.save(user);
 		} catch (DataIntegrityViolationException e) {
-			DatabaseException databaseException = new DatabaseException("Couldn't save a user: " + user, e);
+			DatabaseException dbe = new DatabaseException("Couldn't save a user: " + user, e);
 			if (e.getCause() != null && e.getCause() instanceof ConstraintViolationException) {
 				//most likely, either login or email aren't unique
 				//TODO: proper check which one of those is it
 				log.error(((ConstraintViolationException) e.getCause()).getSQLException().getMessage());
-				databaseException.setDuplicate(true);
+				dbe.setDuplicate(true);
 			}
-			throw databaseException;
+			throw dbe;
 
 		} catch (Exception e) {
 			throw new DatabaseException("Couldn't save a user: " + user, e);
@@ -118,31 +117,18 @@ public class UserService implements UserDetailsService {
 	}
 
 	private String cleanPhoneNumber(String rawNumber) {
-		StringBuilder result = new StringBuilder();
-
-		for (char n : rawNumber.toCharArray()) {
-			if (Character.isDigit(n)) {
-				result.append(n);
-			}
-		}
-
-		return result.toString();
+		return rawNumber.chars()
+				.filter(Character::isDigit)
+				.collect(StringBuilder::new,
+						StringBuilder::appendCodePoint,
+						StringBuilder::append)
+				.toString();
 	}
 
 	@Override
-	public UserDetails loadUserByUsername(@NotNull String username) throws UsernameNotFoundException {
-		return new UserDTO(userRepo.findByLogin(username).orElseThrow(() ->
-				new UsernameNotFoundException("Login " + username + " not found.")));
-	}
-
-	public String getUsernameByLogin(String login) {
-		try {
-			return (login != null && !login.isEmpty()) ?
-					loadUserByUsername(login).toString() : "";
-		} catch (UsernameNotFoundException e) {
-			log.error(e.getMessage());
-			return "";
-		}
+	public UserDetails loadUserByUsername(@NotNull String login) throws UsernameNotFoundException {
+		return new UserDTO(userRepo.findByLogin(login).orElseThrow(() ->
+				new UsernameNotFoundException("Login " + login + " not found.")));
 	}
 
 	public List<User> loadUsersByLoginCollection(Set<String> filter) {

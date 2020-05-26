@@ -103,7 +103,7 @@ public class OrderService {
 	 * @param modelOrder order the way it arrived from frontend, + initiator (user who calls it)
 	 */
 	public void updateOrder(OrderDTO modelOrder) throws DatabaseException, IllegalArgumentException {
-		OrderDTO dbOrder = getOrderById(String.valueOf(modelOrder.getId()));
+		OrderDTO dbOrder = getOrderById(modelOrder.getId());
 		AbstractState state = dbOrder.getLiveState();
 		state.verifyRequest(modelOrder);
 		state.processOrder(this, state.assembleOrder(dbOrder, modelOrder));
@@ -113,11 +113,14 @@ public class OrderService {
 		long realID;
 		try {
 			realID = Long.parseLong(id);
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			throw new IllegalArgumentException("Can't convert ID " + id + " to a number.");
 		}
+		return getOrderById(realID);
+	}
 
-		WorkOrder order = orderRepo.findById(realID).orElseThrow(() ->
+	public OrderDTO getOrderById(long id) throws IllegalArgumentException {
+		WorkOrder order = orderRepo.findById(id).orElseThrow(() ->
 				new IllegalArgumentException("Can't find order with ID " + id));
 
 		return wrapOrderInDTO(order, getUserCache(Arrays.asList(order)));

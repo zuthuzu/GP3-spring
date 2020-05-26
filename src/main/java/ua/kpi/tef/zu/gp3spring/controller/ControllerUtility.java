@@ -14,7 +14,9 @@ import ua.kpi.tef.zu.gp3spring.entity.RoleType;
 import ua.kpi.tef.zu.gp3spring.entity.User;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by Anton Domin on 2020-03-23
@@ -47,13 +49,9 @@ public class ControllerUtility {
 	}
 
 	public List<String> getLocalCategories() {
-		List<String> localCategories = new ArrayList<>();
-
-		for (ItemCategory cat : ItemCategory.values()) {
-			localCategories.add(getLocalizedText(cat.toString()));
-		}
-
-		return localCategories;
+		return Arrays.stream(ItemCategory.values())
+				.map((v) -> getLocalizedText(v.toString()))
+				.collect(Collectors.toCollection(ArrayList::new));
 	}
 
 	public String getLocalizedText(String property) {

@@ -42,14 +42,10 @@ public enum SupportedLanguages {
 
 	public static Locale determineLocale(String code) {
 		String codeLC = code.toLowerCase();
-
-		for (SupportedLanguages lang: SupportedLanguages.values()) {
-			if (lang.getCode().equals(codeLC)) {
-				return determineLocale(lang);
-			}
-		}
-
-		return determineLocale(getDefault());
+		return determineLocale(Arrays.stream(SupportedLanguages.values())
+				.filter(lang -> lang.getCode().equals(codeLC))
+				.findAny()
+				.orElse(getDefault()));
 	}
 
 	public static Locale determineLocale(SupportedLanguages lang) {
