@@ -182,9 +182,9 @@ public class OrderService {
 	private Map<String, String> getUserCache(List<? extends WorkOrder> entities) {
 		Map<String, String> userCache = new HashMap<>();
 		for (WorkOrder order : entities) {
-			userCache.put(order.getAuthor(), null);
-			userCache.put(order.getManager(), null);
-			userCache.put(order.getMaster(), null);
+			userCache.put(order.getAuthor(), "");
+			userCache.put(order.getManager(), "");
+			userCache.put(order.getMaster(), "");
 		}
 
 		List<User> userList = userService.loadUsersByLoginCollection(userCache.keySet());
